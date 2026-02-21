@@ -1,155 +1,53 @@
-import React, { useState, useRef, useEffect } from 'react';
-import { APIProvider, useMapsLibrary } from '@vis.gl/react-google-maps';
-import { MapPin, Calendar, Navigation, Trash2 } from 'lucide-react';
-
-const API_KEY = 'YOUR_GOOGLE_MAPS_API_KEY'; // Replace with your actual key
-
-export default function TravelApp() {
-  const [step, setStep] = useState(1);
-  const [mainDestination, setMainDestination] = useState(null);
-  const [itinerary, setItinerary] = useState([]);
-
-  // --- Step 1: Landing Page Logic ---
-  const handleStart = (place) => {
-    setMainDestination(place);
-    setStep(2);
-  };
-
-  // --- Step 2: Itinerary Logic ---
-  const addToItinerary = (place) => {
-    const newItem = {
-      id: Math.random().toString(36),
-      name: place.name,
-      address: place.formatted_address,
-      placeId: place.place_id,
-      date: new Date().toLocaleDateString(),
-    };
-    setItinerary([...itinerary, newItem]);
-  };
-
-  const removeFromItinerary = (id) => {
-    setItinerary(itinerary.filter(item => item.id !== id));
-  };
-
-  // The "To Go" Link Generator
-  const openInGoogleMaps = (item) => {
-    // This URL format triggers Google Maps navigation/directions
-    const url = `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(item.name)}&destination_place_id=${item.placeId}&travelmode=transit`;
-    window.open(url, '_blank');
-  };
-
-  return (
-    <APIProvider apiKey={API_KEY}>
-      <div className="min-h-screen bg-slate-50 font-sans text-slate-900">
-        {step === 1 ? (
-          <LandingPage onSelect={handleStart} />
-        ) : (
-          <PlannerPage 
-            mainDest={mainDestination} 
-            itinerary={itinerary} 
-            onAdd={addToItinerary}
-            onRemove={removeFromItinerary}
-            onGo={openInGoogleMaps}
-          />
-        )}
-      </div>
-    </APIProvider>
-  );
-}
-
-// --- Component: Landing Page ---
-function LandingPage({ onSelect }) {
-  return (
-    <div className="flex flex-col items-center justify-center h-screen px-4 text-center">
-      <h1 className="text-5xl font-bold mb-6 text-blue-600">Where to go?</h1>
-      <p className="text-slate-500 mb-8 max-w-md">Start your next adventure by typing a city or landmark.</p>
-      <div className="w-full max-w-lg">
-        <PlaceAutocomplete onPlaceSelect={onSelect} placeholder="Search destination (e.g. Tokyo, Japan)" />
-      </div>
-    </div>
-  );
-}
-
-// --- Component: Planner Page ---
-function PlannerPage({ mainDest, itinerary, onAdd, onRemove, onGo }) {
-  return (
-    <div className="max-w-4xl mx-auto p-6">
-      <header className="mb-8 flex justify-between items-end border-b pb-6">
-        <div>
-          <h2 className="text-3xl font-bold">Trip to {mainDest.name}</h2>
-          <p className="text-slate-500">{mainDest.formatted_address}</p>
-        </div>
-        <button onClick={() => window.location.reload()} className="text-sm text-blue-600 hover:underline">Change Destination</button>
-      </header>
-
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-        {/* Left: Add Stops */}
-        <div className="md:col-span-1">
-          <h3 className="font-semibold mb-4 flex items-center gap-2">
-            <MapPin size={18} /> Add a Stop
-          </h3>
-          <PlaceAutocomplete onPlaceSelect={onAdd} placeholder="Search places to visit..." />
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Where to Go? - Travel Planner</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://maps.googleapis.com/maps/api/js?key=YOUR_API_KEY&libraries=places"></script>
+</head>
+<body class="bg-gray-50">
+    <div id="app" class="p-8">
+        <h1 class="text-4xl font-bold text-center mb-8">Where to go?</h1>
+        
+        <div class="max-w-md mx-auto mb-10">
+            <input id="autocomplete" type="text" placeholder="Type a destination..." 
+                   class="w-full p-4 border rounded-xl shadow-sm focus:ring-2 focus:ring-blue-500 outline-none">
         </div>
 
-        {/* Right: Itinerary List */}
-        <div className="md:col-span-2 space-y-4">
-          <h3 className="font-semibold mb-4 flex items-center gap-2">
-            <Calendar size={18} /> Your Schedule
-          </h3>
-          {itinerary.length === 0 && <p className="text-slate-400 italic">No stops added yet.</p>}
-          {itinerary.map((item) => (
-            <div key={item.id} className="bg-white p-4 rounded-xl shadow-sm border flex justify-between items-center group">
-              <div>
-                <h4 className="font-bold">{item.name}</h4>
-                <p className="text-xs text-slate-500">{item.address}</p>
-              </div>
-              <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                <button 
-                  onClick={() => onGo(item)}
-                  className="bg-blue-600 text-white p-2 rounded-lg hover:bg-blue-700 flex items-center gap-1 text-xs"
-                >
-                  <Navigation size={14} /> To Go
-                </button>
-                <button 
-                  onClick={() => onRemove(item.id)}
-                  className="p-2 text-red-500 hover:bg-red-50 rounded-lg"
-                >
-                  <Trash2 size={14} />
-                </button>
-              </div>
+        <div id="itinerary" class="max-w-2xl mx-auto space-y-4">
             </div>
-          ))}
-        </div>
-      </div>
     </div>
-  );
-}
 
-// --- Component: Google Places Autocomplete Input ---
-function PlaceAutocomplete({ onPlaceSelect, placeholder }) {
-  const [placeAutocomplete, setPlaceAutocomplete] = useState(null);
-  const inputRef = useRef(null);
-  const places = useMapsLibrary('places');
+    <script>
+        const input = document.getElementById('autocomplete');
+        const itineraryContainer = document.getElementById('itinerary');
+        const autocomplete = new google.maps.places.Autocomplete(input);
 
-  useEffect(() => {
-    if (!places || !inputRef.current) return;
-    const options = { fields: ['geometry', 'name', 'formatted_address', 'place_id'] };
-    setPlaceAutocomplete(new places.Autocomplete(inputRef.current, options));
-  }, [places]);
+        autocomplete.addListener('place_changed', () => {
+            const place = autocomplete.getPlace();
+            if (!place.geometry) return;
 
-  useEffect(() => {
-    if (!placeAutocomplete) return;
-    placeAutocomplete.addListener('place_changed', () => {
-      onPlaceSelect(placeAutocomplete.getPlace());
-      inputRef.current.value = ""; // Clear input after selection
-    });
-  }, [onPlaceSelect, placeAutocomplete]);
+            addStop(place);
+            input.value = ""; // Clear search
+        });
 
-  return (
-    <input 
-      ref={inputRef} 
-      placeholder={placeholder}
-      className="w-full px-4 py-3 rounded-xl border border-slate-300 focus:ring-2 focus:ring-blue-500 outline-none shadow-sm transition-all"
-    />
-  );
-}
+        function addStop(place) {
+            const div = document.createElement('div');
+            div.className = "bg-white p-6 rounded-lg shadow-md flex justify-between items-center";
+            div.innerHTML = `
+                <div>
+                    <h3 class="font-bold text-xl">${place.name}</h3>
+                    <p class="text-gray-500">${place.formatted_address}</p>
+                </div>
+                <button onclick="window.open('https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(place.name)}&destination_place_id=${place.place_id}', '_blank')"
+                        class="bg-blue-600 text-white px-6 py-2 rounded-full font-semibold hover:bg-blue-700 transition">
+                    To Go 🚀
+                </button>
+            `;
+            itineraryContainer.appendChild(div);
+        }
+    </script>
+</body>
+</html>
