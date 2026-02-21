@@ -3,75 +3,88 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Simple Travel Planner</title>
+    <title>Daily Travel Planner</title>
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body class="bg-gray-100 p-5 md:p-12">
+<body class="bg-slate-50 p-4 md:p-10 font-sans">
 
-    <div class="max-w-xl mx-auto bg-white shadow-2xl rounded-3xl p-8 border border-gray-100">
-        <h1 class="text-4xl font-black text-gray-800 mb-8 text-center italic">Where to go?</h1>
+    <div class="max-w-2xl mx-auto bg-white shadow-xl rounded-3xl p-6 md:p-10 border border-slate-100">
+        <h1 class="text-4xl font-black text-slate-800 mb-8 text-center tracking-tight">Trip Planner</h1>
         
-        <div class="space-y-4 mb-10">
-            <div>
-                <label class="block text-sm font-bold text-gray-400 mb-1 ml-1 uppercase">Destination Name</label>
-                <input id="placeInput" type="text" placeholder="e.g. Eiffel Tower or Tokyo Sushi" 
-                       class="w-full p-4 bg-gray-50 border-2 border-gray-200 rounded-2xl focus:border-blue-500 focus:bg-white outline-none transition-all text-lg">
-            </div>
-
-            <div class="flex gap-4">
-                <div class="flex-1">
-                    <label class="block text-sm font-bold text-gray-400 mb-1 ml-1 uppercase">Start</label>
-                    <input type="date" id="startDate" class="w-full p-3 bg-gray-50 border-2 border-gray-200 rounded-xl outline-none">
+        <div class="bg-slate-100 p-6 rounded-2xl mb-8">
+            <h2 class="text-sm font-bold text-slate-500 uppercase mb-4 tracking-widest">1. Set Date Range</h2>
+            <div class="flex flex-wrap gap-4">
+                <div class="flex-1 min-w-[140px]">
+                    <label class="block text-[10px] font-bold text-slate-400 mb-1 uppercase">Arrive</label>
+                    <input type="date" id="startDate" class="w-full p-3 rounded-xl border-2 border-transparent focus:border-blue-500 outline-none">
                 </div>
-                <div class="flex-1">
-                    <label class="block text-sm font-bold text-gray-400 mb-1 ml-1 uppercase">End</label>
-                    <input type="date" id="endDate" class="w-full p-3 bg-gray-50 border-2 border-gray-200 rounded-xl outline-none">
+                <div class="flex-1 min-w-[140px]">
+                    <label class="block text-[10px] font-bold text-slate-400 mb-1 uppercase">Depart</label>
+                    <input type="date" id="endDate" class="w-full p-3 rounded-xl border-2 border-transparent focus:border-blue-500 outline-none">
                 </div>
             </div>
-
-            <button onclick="addToItinerary()" 
-                    class="w-full py-4 bg-black text-white font-bold rounded-2xl hover:bg-gray-800 transition-transform active:scale-95">
-                + Add to Trip
+            <button onclick="generateSchedule()" class="w-full mt-4 py-3 bg-blue-600 text-white font-bold rounded-xl hover:bg-blue-700 transition-all shadow-lg shadow-blue-200">
+                Create Schedule
             </button>
         </div>
 
-        <div id="itinerary" class="space-y-4">
-            </div>
+        <div id="itineraryContainer" class="space-y-6 hidden">
+            <h2 class="text-sm font-bold text-slate-500 uppercase mb-2 tracking-widest">2. Your Daily Stops</h2>
+            <div id="dailySlots" class="space-y-4">
+                </div>
+        </div>
     </div>
 
     <script>
-        function addToItinerary() {
-            const place = document.getElementById('placeInput').value;
-            const start = document.getElementById('startDate').value;
-            
-            if (!place) {
-                alert("Please type a name first!");
+        function generateSchedule() {
+            const start = new Date(document.getElementById('startDate').value);
+            const end = new Date(document.getElementById('endDate').value);
+            const container = document.getElementById('itineraryContainer');
+            const slotsDiv = document.getElementById('dailySlots');
+
+            if (isNaN(start) || isNaN(end) || start > end) {
+                alert("Please select a valid date range!");
                 return;
             }
 
-            const itinerary = document.getElementById('itinerary');
-            const card = document.createElement('div');
-            
-            card.className = "flex justify-between items-center p-5 bg-white border-2 border-gray-100 rounded-2xl shadow-sm hover:shadow-md transition-shadow";
-            
-            // This is the magic link: it takes the name you typed and searches Google Maps
-            const googleMapsUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(place)}`;
+            // Clear previous and show container
+            slotsDiv.innerHTML = "";
+            container.classList.remove('hidden');
 
-            card.innerHTML = `
-                <div>
-                    <p class="text-xs font-bold text-blue-500 uppercase">${start || 'No date set'}</p>
-                    <h3 class="text-xl font-bold text-gray-800">${place}</h3>
-                </div>
-                <a href="${googleMapsUrl}" target="_blank" 
-                   class="bg-blue-600 text-white px-5 py-3 rounded-xl font-bold hover:bg-blue-700 flex items-center gap-2">
-                    To Go 🚀
-                </a>
-            `;
+            // Loop through each day
+            let current = new Date(start);
+            while (current <= end) {
+                const dateStr = current.toDateString();
+                const dayBox = document.createElement('div');
+                dayBox.className = "p-5 border-2 border-slate-100 rounded-2xl bg-white hover:border-blue-100 transition-colors";
+                
+                dayBox.innerHTML = `
+                    <p class="text-blue-600 font-bold text-sm mb-3">${dateStr}</p>
+                    <div class="flex gap-2">
+                        <input type="text" placeholder="Where for today?" 
+                               id="input-${dateStr}"
+                               class="flex-1 p-3 bg-slate-50 rounded-xl outline-none focus:bg-white focus:ring-2 focus:ring-blue-500 text-slate-700">
+                        <button onclick="go('${dateStr}')" 
+                                class="bg-black text-white px-5 py-3 rounded-xl font-bold hover:bg-slate-800 flex items-center gap-2">
+                            To Go 🚀
+                        </button>
+                    </div>
+                `;
+                slotsDiv.appendChild(dayBox);
+                current.setDate(current.getDate() + 1);
+            }
+        }
 
-            itinerary.prepend(card);
-            document.getElementById('placeInput').value = ""; // Clear input
+        function go(dateId) {
+            const destination = document.getElementById(`input-${dateId}`).value;
+            if (!destination) {
+                alert("Type a place name for this day first!");
+                return;
+            }
+            // Auto-fills name into Google Maps search
+            const googleMapsUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(destination)}`;
+            window.open(googleMapsUrl, '_blank');
         }
     </script>
-
 </body>
 </html>
