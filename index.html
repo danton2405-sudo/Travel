@@ -1,53 +1,58 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Where to Go? - Travel Planner</title>
+    <title>Travel Planner</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://maps.googleapis.com/maps/api/js?key=YOUR_API_KEY&libraries=places"></script>
 </head>
-<body class="bg-gray-50">
-    <div id="app" class="p-8">
-        <h1 class="text-4xl font-bold text-center mb-8">Where to go?</h1>
+<body class="bg-slate-100 p-4 md:p-10">
+    <div class="max-w-2xl mx-auto bg-white shadow-xl rounded-3xl p-8">
+        <h1 class="text-3xl font-bold text-blue-600 mb-2 text-center">Where to go?</h1>
         
-        <div class="max-w-md mx-auto mb-10">
-            <input id="autocomplete" type="text" placeholder="Type a destination..." 
-                   class="w-full p-4 border rounded-xl shadow-sm focus:ring-2 focus:ring-blue-500 outline-none">
+        <input id="searchBox" type="text" placeholder="Enter a city or place..." 
+               class="w-full p-4 mb-4 border-2 border-blue-100 rounded-xl focus:border-blue-500 outline-none">
+
+        <div class="flex gap-4 mb-6">
+            <div class="flex-1">
+                <label class="text-xs font-bold text-gray-400 uppercase">Start Date</label>
+                <input type="date" id="startDate" class="w-full p-2 border rounded-lg">
+            </div>
+            <div class="flex-1">
+                <label class="text-xs font-bold text-gray-400 uppercase">End Date</label>
+                <input type="date" id="endDate" class="w-full p-2 border rounded-lg">
+            </div>
         </div>
 
-        <div id="itinerary" class="max-w-2xl mx-auto space-y-4">
+        <hr class="mb-6">
+
+        <div id="itinerary" class="space-y-4">
             </div>
     </div>
 
     <script>
-        const input = document.getElementById('autocomplete');
-        const itineraryContainer = document.getElementById('itinerary');
-        const autocomplete = new google.maps.places.Autocomplete(input);
+        const searchBox = document.getElementById('searchBox');
+        const itinerary = document.getElementById('itinerary');
+        const autocomplete = new google.maps.places.Autocomplete(searchBox);
 
         autocomplete.addListener('place_changed', () => {
             const place = autocomplete.getPlace();
-            if (!place.geometry) return;
+            if (!place.place_id) return;
 
-            addStop(place);
-            input.value = ""; // Clear search
-        });
-
-        function addStop(place) {
             const div = document.createElement('div');
-            div.className = "bg-white p-6 rounded-lg shadow-md flex justify-between items-center";
+            div.className = "flex justify-between items-center p-4 bg-blue-50 rounded-xl border border-blue-100";
             div.innerHTML = `
                 <div>
-                    <h3 class="font-bold text-xl">${place.name}</h3>
-                    <p class="text-gray-500">${place.formatted_address}</p>
+                    <h3 class="font-bold text-blue-900">${place.name}</h3>
+                    <p class="text-sm text-blue-700">${place.formatted_address}</p>
                 </div>
                 <button onclick="window.open('https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(place.name)}&destination_place_id=${place.place_id}', '_blank')"
-                        class="bg-blue-600 text-white px-6 py-2 rounded-full font-semibold hover:bg-blue-700 transition">
+                        class="bg-blue-600 text-white px-4 py-2 rounded-lg font-bold hover:bg-blue-700">
                     To Go 🚀
                 </button>
             `;
-            itineraryContainer.appendChild(div);
-        }
+            itinerary.appendChild(div);
+            searchBox.value = ""; // Reset search
+        });
     </script>
 </body>
 </html>
