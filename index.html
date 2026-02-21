@@ -3,16 +3,16 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Osaka Trip Planner 2026</title>
+    <title>Osaka Trip 2026 (Bilingual)</title>
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body class="bg-slate-50 p-4 md:p-10 font-sans text-slate-800 pb-32">
+<body class="bg-slate-50 p-4 md:p-10 font-sans text-slate-800 pb-40">
 
     <div class="max-w-2xl mx-auto bg-white shadow-2xl rounded-[2.5rem] p-8 md:p-12 border border-slate-100">
         
         <header class="text-center mb-10">
-            <h1 class="text-4xl font-black text-blue-600 italic tracking-tight">Osaka Family Adventure</h1>
-            <p class="text-slate-400 font-bold text-xs mt-2 uppercase tracking-widest">Feb 23 - Mar 01, 2026</p>
+            <h1 class="text-4xl font-black text-blue-600 italic tracking-tight">Osaka Adventure 2026</h1>
+            <p class="text-slate-400 font-bold text-xs mt-2 uppercase tracking-widest">Bilingual Itinerary / 雙語行程</p>
         </header>
 
         <div id="dailySlots" class="space-y-12">
@@ -28,48 +28,48 @@
     </div>
 
     <script>
-        // Data automatically entered from your Travel Trial document
+        // Bilingual Data from your trial doc
         const itineraryData = {
             "Mon Feb 23": [
-                "KIX Terminal 1 2/F Food Court",
-                "OMO Kansai Airport by Hoshino Resorts",
-                "Rinku Premium Outlets",
-                "Super Center TRIAL Rinku Town"
+                "KIX Terminal 1 2/F Food Court (關西機場第一航廈2樓美食廣場)",
+                "OMO Kansai Airport by Hoshino Resorts (OMO 關西機場 by 星野集團)",
+                "Rinku Premium Outlets (臨空城暢貨中心)",
+                "Super Center TRIAL Rinku Town (TRIAL 超級市場臨空鎮店)"
             ],
             "Tue Feb 24": [
-                "Eiraku Yumenomori Park",
-                "Café Liaison Mizuma",
-                "Hotel Hankyu RESPIRE OSAKA",
-                "Yakiniku Japan Yodobashi Umeda",
-                "Yodobashi Umeda Gachapon"
+                "Eiraku Yumenomori Park (永樂夢之森公園)",
+                "Café Liaison Mizuma (水間咖啡店)",
+                "Hotel Hankyu RESPIRE OSAKA (大阪阪急龍仕柏酒店)",
+                "Yakiniku Japan Yodobashi Umeda (燒肉日本 Yodobashi Umeda店)",
+                "Yodobashi Umeda Gachapon (Yodobashi 梅田 扭蛋區)"
             ],
             "Wed Feb 25": [
-                "Bread, Espresso & Sakaisuji Club",
-                "Osaka Castle Park",
-                "Jo-Terrace Osaka",
-                "Unagi Yondaime Kikukawa Namba",
-                "Shinsaibashi PARCO",
-                "Kaiten Sushi Ginza Onodera Umeda"
+                "Bread, Espresso & Sakaisuji Club (麵包、咖啡與堺筋俱樂部)",
+                "Osaka Castle Park (大阪城公園)",
+                "Jo-Terrace Osaka (大阪城公園商場)",
+                "Unagi Yondaime Kikukawa Namba (鰻 四代目菊川 難波店)",
+                "Shinsaibashi PARCO (心齋橋 PARCO)",
+                "Kaiten Sushi Ginza Onodera Umeda (迴轉壽司 銀座小野寺 梅田店)"
             ],
             "Thu Feb 26": [
-                "Ogimachi Park",
-                "Kids Plaza Osaka",
-                "The City Bakery Brasserie Rubin",
-                "Solaniwa Onsen",
-                "Yakitori Kibitaki Sanntyoume"
+                "Ogimachi Park (扇町公園)",
+                "Kids Plaza Osaka (大阪兒童樂園)",
+                "The City Bakery Brasserie Rubin (Grand Front Osaka)",
+                "Solaniwa Onsen (空庭溫泉)",
+                "Yakitori Kibitaki Sanntyoume (燒鳥 喜火鳥 三丁目)"
             ],
             "Fri Feb 27": [
-                "Katsuo-ji Temple",
-                "RISONARE Osaka",
-                "Hyatt Regency Osaka"
+                "Katsuo-ji Temple (勝尾寺)",
+                "RISONARE Osaka (大阪 RISONARE 酒店)",
+                "Hyatt Regency Osaka (大阪凱悅酒店)"
             ],
             "Sat Feb 28": [
-                "Rokko Mountain Snow Park",
-                "Hankyu Sanban Gai",
-                "Hotel Nikko Kansai Airport"
+                "Rokko Mountain Snow Park (六甲山雪上樂園)",
+                "Hankyu Sanban Gai (阪急三番街)",
+                "Hotel Nikko Kansai Airport (關西機場日航酒店)"
             ],
             "Sun Mar 01": [
-                "KIX Terminal 1"
+                "KIX Terminal 1 (關西機場第一航廈)"
             ]
         };
 
@@ -81,7 +81,10 @@
                 daySection.innerHTML = `
                     <div class="flex items-center justify-between mb-4 border-b pb-2">
                         <h3 class="text-xl font-black text-slate-800">${date}</h3>
-                        <span class="text-[10px] font-bold text-blue-400 uppercase tracking-tighter">Sequence Loaded</span>
+                        <button onclick="addStopField('${date.replace(/\s/g, '')}')" 
+                                class="text-[10px] font-bold text-blue-500 bg-blue-50 px-3 py-1 rounded-full hover:bg-blue-100 transition-all uppercase">
+                            + Add Place
+                        </button>
                     </div>
                     <div id="stops-${date.replace(/\s/g, '')}" class="space-y-3"></div>
                 `;
@@ -89,16 +92,26 @@
 
                 const stopsContainer = daySection.querySelector(`#stops-${date.replace(/\s/g, '')}`);
                 itineraryData[date].forEach(place => {
-                    const row = document.createElement('div');
-                    row.className = "flex items-center gap-4 bg-slate-50 p-4 rounded-2xl border-2 border-transparent hover:border-blue-100 transition-all group";
-                    row.innerHTML = `
-                        <input type="checkbox" onchange="updateCount()" class="w-6 h-6 rounded-lg accent-blue-600 cursor-pointer shadow-sm">
-                        <input type="text" value="${place}" 
-                               class="flex-1 bg-transparent outline-none font-bold text-slate-700">
-                    `;
-                    stopsContainer.appendChild(row);
+                    stopsContainer.appendChild(createRow(place));
                 });
             });
+        }
+
+        function createRow(value = "") {
+            const row = document.createElement('div');
+            row.className = "flex items-center gap-4 bg-slate-50 p-4 rounded-2xl border-2 border-transparent hover:border-blue-100 transition-all group";
+            row.innerHTML = `
+                <input type="checkbox" onchange="updateCount()" class="w-6 h-6 rounded-lg accent-blue-600 cursor-pointer shadow-sm">
+                <input type="text" value="${value}" placeholder="New destination..." 
+                       class="flex-1 bg-transparent outline-none font-bold text-slate-700 text-sm md:text-base">
+                <button onclick="this.parentElement.remove(); updateCount();" class="opacity-0 group-hover:opacity-100 text-slate-300 hover:text-red-400 px-1">✕</button>
+            `;
+            return row;
+        }
+
+        function addStopField(dateId) {
+            const stopsContainer = document.getElementById(`stops-${dateId}`);
+            stopsContainer.appendChild(createRow(""));
         }
 
         function updateCount() {
@@ -115,7 +128,7 @@
                 if (name) places.push(encodeURIComponent(name));
             });
 
-            if (places.length === 0) return alert("Select at least one place first!");
+            if (places.length === 0) return alert("Select at least one place! / 請先選擇地點！");
 
             let url = "";
             if (places.length === 1) {
