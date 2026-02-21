@@ -1,58 +1,77 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>Travel Planner</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simple Travel Planner</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://maps.googleapis.com/maps/api/js?key=YOUR_API_KEY&libraries=places"></script>
 </head>
-<body class="bg-slate-100 p-4 md:p-10">
-    <div class="max-w-2xl mx-auto bg-white shadow-xl rounded-3xl p-8">
-        <h1 class="text-3xl font-bold text-blue-600 mb-2 text-center">Where to go?</h1>
+<body class="bg-gray-100 p-5 md:p-12">
+
+    <div class="max-w-xl mx-auto bg-white shadow-2xl rounded-3xl p-8 border border-gray-100">
+        <h1 class="text-4xl font-black text-gray-800 mb-8 text-center italic">Where to go?</h1>
         
-        <input id="searchBox" type="text" placeholder="Enter a city or place..." 
-               class="w-full p-4 mb-4 border-2 border-blue-100 rounded-xl focus:border-blue-500 outline-none">
+        <div class="space-y-4 mb-10">
+            <div>
+                <label class="block text-sm font-bold text-gray-400 mb-1 ml-1 uppercase">Destination Name</label>
+                <input id="placeInput" type="text" placeholder="e.g. Eiffel Tower or Tokyo Sushi" 
+                       class="w-full p-4 bg-gray-50 border-2 border-gray-200 rounded-2xl focus:border-blue-500 focus:bg-white outline-none transition-all text-lg">
+            </div>
 
-        <div class="flex gap-4 mb-6">
-            <div class="flex-1">
-                <label class="text-xs font-bold text-gray-400 uppercase">Start Date</label>
-                <input type="date" id="startDate" class="w-full p-2 border rounded-lg">
+            <div class="flex gap-4">
+                <div class="flex-1">
+                    <label class="block text-sm font-bold text-gray-400 mb-1 ml-1 uppercase">Start</label>
+                    <input type="date" id="startDate" class="w-full p-3 bg-gray-50 border-2 border-gray-200 rounded-xl outline-none">
+                </div>
+                <div class="flex-1">
+                    <label class="block text-sm font-bold text-gray-400 mb-1 ml-1 uppercase">End</label>
+                    <input type="date" id="endDate" class="w-full p-3 bg-gray-50 border-2 border-gray-200 rounded-xl outline-none">
+                </div>
             </div>
-            <div class="flex-1">
-                <label class="text-xs font-bold text-gray-400 uppercase">End Date</label>
-                <input type="date" id="endDate" class="w-full p-2 border rounded-lg">
-            </div>
+
+            <button onclick="addToItinerary()" 
+                    class="w-full py-4 bg-black text-white font-bold rounded-2xl hover:bg-gray-800 transition-transform active:scale-95">
+                + Add to Trip
+            </button>
         </div>
-
-        <hr class="mb-6">
 
         <div id="itinerary" class="space-y-4">
             </div>
     </div>
 
     <script>
-        const searchBox = document.getElementById('searchBox');
-        const itinerary = document.getElementById('itinerary');
-        const autocomplete = new google.maps.places.Autocomplete(searchBox);
+        function addToItinerary() {
+            const place = document.getElementById('placeInput').value;
+            const start = document.getElementById('startDate').value;
+            
+            if (!place) {
+                alert("Please type a name first!");
+                return;
+            }
 
-        autocomplete.addListener('place_changed', () => {
-            const place = autocomplete.getPlace();
-            if (!place.place_id) return;
+            const itinerary = document.getElementById('itinerary');
+            const card = document.createElement('div');
+            
+            card.className = "flex justify-between items-center p-5 bg-white border-2 border-gray-100 rounded-2xl shadow-sm hover:shadow-md transition-shadow";
+            
+            // This is the magic link: it takes the name you typed and searches Google Maps
+            const googleMapsUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(place)}`;
 
-            const div = document.createElement('div');
-            div.className = "flex justify-between items-center p-4 bg-blue-50 rounded-xl border border-blue-100";
-            div.innerHTML = `
+            card.innerHTML = `
                 <div>
-                    <h3 class="font-bold text-blue-900">${place.name}</h3>
-                    <p class="text-sm text-blue-700">${place.formatted_address}</p>
+                    <p class="text-xs font-bold text-blue-500 uppercase">${start || 'No date set'}</p>
+                    <h3 class="text-xl font-bold text-gray-800">${place}</h3>
                 </div>
-                <button onclick="window.open('https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(place.name)}&destination_place_id=${place.place_id}', '_blank')"
-                        class="bg-blue-600 text-white px-4 py-2 rounded-lg font-bold hover:bg-blue-700">
+                <a href="${googleMapsUrl}" target="_blank" 
+                   class="bg-blue-600 text-white px-5 py-3 rounded-xl font-bold hover:bg-blue-700 flex items-center gap-2">
                     To Go 🚀
-                </button>
+                </a>
             `;
-            itinerary.appendChild(div);
-            searchBox.value = ""; // Reset search
-        });
+
+            itinerary.prepend(card);
+            document.getElementById('placeInput').value = ""; // Clear input
+        }
     </script>
+
 </body>
 </html>
