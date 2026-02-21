@@ -3,115 +3,193 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Osaka Trip 2026 (Bilingual)</title>
+    <title>Travel Manager Pro</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .sidebar { width: 280px; transition: all 0.3s; }
+        @media (max-width: 768px) { .sidebar { width: 0; overflow: hidden; } }
+        /* Custom scrollbar for a cleaner look */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+    </style>
 </head>
-<body class="bg-slate-50 p-4 md:p-10 font-sans text-slate-800 pb-40">
+<body class="bg-slate-50 font-sans text-slate-800 flex h-screen overflow-hidden">
 
-    <div class="max-w-2xl mx-auto bg-white shadow-2xl rounded-[2.5rem] p-8 md:p-12 border border-slate-100">
-        
-        <header class="text-center mb-10">
-            <h1 class="text-4xl font-black text-blue-600 italic tracking-tight">Osaka Adventure 2026</h1>
-            <p class="text-slate-400 font-bold text-xs mt-2 uppercase tracking-widest">Bilingual Itinerary / 雙語行程</p>
-        </header>
-
-        <div id="dailySlots" class="space-y-12">
-            </div>
-
-        <div class="fixed bottom-10 left-1/2 -translate-x-1/2 w-full max-w-xs px-4 z-50">
-            <button onclick="goToSelectedRoute()" 
-                    class="w-full py-5 bg-blue-600 text-white font-black text-xl rounded-3xl shadow-2xl shadow-blue-400 hover:bg-blue-700 transition-all active:scale-95 flex items-center justify-center gap-3">
-                TO GO 🚀
-                <span id="selectCount" class="bg-blue-800 px-3 py-1 rounded-full text-sm">0</span>
+    <aside class="sidebar bg-slate-900 text-slate-300 flex flex-col h-full border-r border-slate-800">
+        <div class="p-6 border-b border-slate-800">
+            <button onclick="createNewTrip()" class="w-full py-3 px-4 bg-blue-600 hover:bg-blue-500 text-white rounded-xl flex items-center justify-center gap-2 transition-all font-bold shadow-lg shadow-blue-900/20">
+                <span class="text-xl">+</span> New Trip
             </button>
         </div>
-    </div>
+        <div class="flex-1 overflow-y-auto p-4 space-y-2" id="historyList">
+            <p class="text-[10px] uppercase font-black text-slate-500 mb-4 tracking-widest px-2">History</p>
+            </div>
+        <div class="p-4 border-t border-slate-800 text-[10px] text-slate-600 text-center font-bold">
+            TRIP MANAGER v2.0
+        </div>
+    </aside>
+
+    <main class="flex-1 flex flex-col h-full overflow-y-auto relative">
+        <div class="max-w-3xl mx-auto w-full p-6 md:p-12 pb-40">
+            
+            <div class="group relative mb-12 text-center">
+                <input type="text" id="tripSubject" oninput="saveCurrentTrip()"
+                       class="text-5xl font-black text-slate-900 bg-transparent border-b-4 border-transparent hover:border-slate-200 focus:border-blue-500 outline-none w-full text-center transition-all pb-2" 
+                       value="My New Adventure">
+                <p class="text-[10px] text-blue-500 font-bold uppercase mt-3 tracking-widest opacity-0 group-hover:opacity-100 transition-opacity">Click to rename trip</p>
+            </div>
+
+            <div class="bg-white p-8 rounded-[2.5rem] shadow-xl shadow-slate-200/50 border border-slate-100 mb-12">
+                <div class="flex flex-wrap gap-6">
+                    <div class="flex-1 min-w-[200px]">
+                        <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Arrival Date</label>
+                        <input type="date" id="startDate" onchange="generateSchedule(); saveCurrentTrip();" class="w-full p-4 bg-slate-50 rounded-2xl border-2 border-transparent focus:border-blue-500 outline-none mt-2 font-bold transition-all">
+                    </div>
+                    <div class="flex-1 min-w-[200px]">
+                        <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Departure Date</label>
+                        <input type="date" id="endDate" onchange="generateSchedule(); saveCurrentTrip();" class="w-full p-4 bg-slate-50 rounded-2xl border-2 border-transparent focus:border-blue-500 outline-none mt-2 font-bold transition-all">
+                    </div>
+                </div>
+            </div>
+
+            <div id="dailySlots" class="space-y-16">
+                </div>
+        </div>
+
+        <div class="fixed bottom-10 right-10 z-50">
+            <button onclick="goToSelectedRoute()" 
+                    class="py-6 px-10 bg-slate-900 text-white font-black text-xl rounded-full shadow-2xl shadow-slate-400 hover:bg-black transition-all active:scale-95 flex items-center gap-4">
+                TO GO 🚀
+                <span id="selectCount" class="bg-blue-600 px-3 py-1 rounded-full text-sm">0</span>
+            </button>
+        </div>
+    </main>
 
     <script>
-        // Bilingual Data from your trial doc
-        const itineraryData = {
-            "Mon Feb 23": [
-                "KIX Terminal 1 2/F Food Court (關西機場第一航廈2樓美食廣場)",
-                "OMO Kansai Airport by Hoshino Resorts (OMO 關西機場 by 星野集團)",
-                "Rinku Premium Outlets (臨空城暢貨中心)",
-                "Super Center TRIAL Rinku Town (TRIAL 超級市場臨空鎮店)"
-            ],
-            "Tue Feb 24": [
-                "Eiraku Yumenomori Park (永樂夢之森公園)",
-                "Café Liaison Mizuma (水間咖啡店)",
-                "Hotel Hankyu RESPIRE OSAKA (大阪阪急龍仕柏酒店)",
-                "Yakiniku Japan Yodobashi Umeda (燒肉日本 Yodobashi Umeda店)",
-                "Yodobashi Umeda Gachapon (Yodobashi 梅田 扭蛋區)"
-            ],
-            "Wed Feb 25": [
-                "Bread, Espresso & Sakaisuji Club (麵包、咖啡與堺筋俱樂部)",
-                "Osaka Castle Park (大阪城公園)",
-                "Jo-Terrace Osaka (大阪城公園商場)",
-                "Unagi Yondaime Kikukawa Namba (鰻 四代目菊川 難波店)",
-                "Shinsaibashi PARCO (心齋橋 PARCO)",
-                "Kaiten Sushi Ginza Onodera Umeda (迴轉壽司 銀座小野寺 梅田店)"
-            ],
-            "Thu Feb 26": [
-                "Ogimachi Park (扇町公園)",
-                "Kids Plaza Osaka (大阪兒童樂園)",
-                "The City Bakery Brasserie Rubin (Grand Front Osaka)",
-                "Solaniwa Onsen (空庭溫泉)",
-                "Yakitori Kibitaki Sanntyoume (燒鳥 喜火鳥 三丁目)"
-            ],
-            "Fri Feb 27": [
-                "Katsuo-ji Temple (勝尾寺)",
-                "RISONARE Osaka (大阪 RISONARE 酒店)",
-                "Hyatt Regency Osaka (大阪凱悅酒店)"
-            ],
-            "Sat Feb 28": [
-                "Rokko Mountain Snow Park (六甲山雪上樂園)",
-                "Hankyu Sanban Gai (阪急三番街)",
-                "Hotel Nikko Kansai Airport (關西機場日航酒店)"
-            ],
-            "Sun Mar 01": [
-                "KIX Terminal 1 (關西機場第一航廈)"
-            ]
-        };
+        let currentTripId = null;
+        let allTrips = JSON.parse(localStorage.getItem('travelHistory_v2') || '{}');
 
-        function loadItinerary() {
-            const container = document.getElementById('dailySlots');
+        function createNewTrip() {
+            currentTripId = 'trip_' + Date.now();
+            allTrips[currentTripId] = {
+                subject: "New Osaka Trip",
+                start: "",
+                end: "",
+                days: {}
+            };
+            loadTrip(currentTripId);
+        }
+
+        function deleteTrip(id, event) {
+            event.stopPropagation(); // Stop from loading the trip while deleting
+            if (confirm("Delete this trip forever?")) {
+                delete allTrips[id];
+                localStorage.setItem('travelHistory_v2', JSON.stringify(allTrips));
+                
+                if (currentTripId === id) {
+                    const remainingIds = Object.keys(allTrips);
+                    if (remainingIds.length > 0) {
+                        loadTrip(remainingIds[0]);
+                    } else {
+                        createNewTrip();
+                    }
+                } else {
+                    updateHistoryMenu();
+                }
+            }
+        }
+
+        function loadTrip(id) {
+            currentTripId = id;
+            const trip = allTrips[id];
+            document.getElementById('tripSubject').value = trip.subject;
+            document.getElementById('startDate').value = trip.start;
+            document.getElementById('endDate').value = trip.end;
+            generateSchedule(true);
+            updateHistoryMenu();
+        }
+
+        function saveCurrentTrip() {
+            if (!currentTripId) return;
+            const trip = allTrips[currentTripId];
+            trip.subject = document.getElementById('tripSubject').value;
+            trip.start = document.getElementById('startDate').value;
+            trip.end = document.getElementById('endDate').value;
             
-            Object.keys(itineraryData).forEach(date => {
-                const daySection = document.createElement('div');
-                daySection.innerHTML = `
-                    <div class="flex items-center justify-between mb-4 border-b pb-2">
-                        <h3 class="text-xl font-black text-slate-800">${date}</h3>
-                        <button onclick="addStopField('${date.replace(/\s/g, '')}')" 
-                                class="text-[10px] font-bold text-blue-500 bg-blue-50 px-3 py-1 rounded-full hover:bg-blue-100 transition-all uppercase">
-                            + Add Place
-                        </button>
-                    </div>
-                    <div id="stops-${date.replace(/\s/g, '')}" class="space-y-3"></div>
-                `;
-                container.appendChild(daySection);
+            trip.days = {};
+            document.querySelectorAll('[id^="stops-"]').forEach(container => {
+                const dateId = container.id.replace('stops-', '');
+                trip.days[dateId] = Array.from(container.querySelectorAll('input[type="text"]')).map(i => i.value);
+            });
 
-                const stopsContainer = daySection.querySelector(`#stops-${date.replace(/\s/g, '')}`);
-                itineraryData[date].forEach(place => {
-                    stopsContainer.appendChild(createRow(place));
-                });
+            localStorage.setItem('travelHistory_v2', JSON.stringify(allTrips));
+            updateHistoryMenu();
+        }
+
+        function updateHistoryMenu() {
+            const list = document.getElementById('historyList');
+            list.innerHTML = '<p class="text-[10px] uppercase font-black text-slate-500 mb-4 tracking-widest px-2">History</p>';
+            
+            Object.keys(allTrips).sort().reverse().forEach(id => {
+                const item = document.createElement('div');
+                item.className = `group flex items-center justify-between p-3 rounded-xl mb-1 cursor-pointer transition-all ${id === currentTripId ? 'bg-blue-600 text-white' : 'hover:bg-slate-800 text-slate-400'}`;
+                item.onclick = () => loadTrip(id);
+                
+                item.innerHTML = `
+                    <span class="truncate font-bold text-sm pr-2">${allTrips[id].subject || 'Untitled Trip'}</span>
+                    <button onclick="deleteTrip('${id}', event)" class="opacity-0 group-hover:opacity-100 hover:text-red-400 p-1 transition-all">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"></path><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path></svg>
+                    </button>
+                `;
+                list.appendChild(item);
             });
         }
 
-        function createRow(value = "") {
-            const row = document.createElement('div');
-            row.className = "flex items-center gap-4 bg-slate-50 p-4 rounded-2xl border-2 border-transparent hover:border-blue-100 transition-all group";
-            row.innerHTML = `
-                <input type="checkbox" onchange="updateCount()" class="w-6 h-6 rounded-lg accent-blue-600 cursor-pointer shadow-sm">
-                <input type="text" value="${value}" placeholder="New destination..." 
-                       class="flex-1 bg-transparent outline-none font-bold text-slate-700 text-sm md:text-base">
-                <button onclick="this.parentElement.remove(); updateCount();" class="opacity-0 group-hover:opacity-100 text-slate-300 hover:text-red-400 px-1">✕</button>
-            `;
-            return row;
+        function generateSchedule(isLoading = false) {
+            const startStr = document.getElementById('startDate').value;
+            const endStr = document.getElementById('endDate').value;
+            if (!startStr || !endStr) return;
+
+            const start = new Date(startStr);
+            const end = new Date(endStr);
+            const slotsDiv = document.getElementById('dailySlots');
+            if (isNaN(start) || isNaN(end)) return;
+
+            slotsDiv.innerHTML = "";
+            let current = new Date(start);
+            while (current <= end) {
+                const dateId = current.toDateString().replace(/\s/g, '');
+                const dayBox = document.createElement('div');
+                dayBox.innerHTML = `
+                    <div class="flex items-center justify-between mb-6 border-b-2 border-slate-100 pb-3">
+                        <h3 class="text-2xl font-black text-slate-900">${current.toDateString()}</h3>
+                        <button onclick="addStopField('${dateId}')" class="text-[10px] font-black text-blue-600 bg-blue-50 px-4 py-2 rounded-full uppercase tracking-widest hover:bg-blue-100 transition-all">+ Add Stop</button>
+                    </div>
+                    <div id="stops-${dateId}" class="space-y-4"></div>
+                `;
+                slotsDiv.appendChild(dayBox);
+                
+                if (isLoading && allTrips[currentTripId].days[dateId]) {
+                    allTrips[currentTripId].days[dateId].forEach(stopText => addStopField(dateId, stopText));
+                } else if (!isLoading) {
+                    addStopField(dateId);
+                }
+                current.setDate(current.getDate() + 1);
+            }
         }
 
-        function addStopField(dateId) {
-            const stopsContainer = document.getElementById(`stops-${dateId}`);
-            stopsContainer.appendChild(createRow(""));
+        function addStopField(dateId, value = "") {
+            const container = document.getElementById(`stops-${dateId}`);
+            const row = document.createElement('div');
+            row.className = "flex items-center gap-4 bg-white p-5 rounded-[1.5rem] shadow-sm border border-slate-100 group transition-all hover:shadow-md";
+            row.innerHTML = `
+                <input type="checkbox" onchange="updateCount()" class="w-6 h-6 rounded-lg accent-blue-600 cursor-pointer border-2 border-slate-200">
+                <input type="text" value="${value}" oninput="saveCurrentTrip()" placeholder="Where to?" 
+                       class="flex-1 outline-none font-bold text-slate-700 text-lg placeholder:text-slate-200 bg-transparent">
+                <button onclick="this.parentElement.remove(); saveCurrentTrip(); updateCount();" class="opacity-0 group-hover:opacity-100 text-slate-200 hover:text-red-400 transition-all font-bold">✕</button>
+            `;
+            container.appendChild(row);
         }
 
         function updateCount() {
@@ -120,29 +198,28 @@
         }
 
         function goToSelectedRoute() {
-            const checkedBoxes = document.querySelectorAll('input[type="checkbox"]:checked');
-            const places = [];
+            const checked = Array.from(document.querySelectorAll('input[type="checkbox"]:checked'))
+                                 .map(cb => encodeURIComponent(cb.nextElementSibling.value))
+                                 .filter(v => v !== "");
+            if (checked.length === 0) return alert("Select at least one place first!");
             
-            checkedBoxes.forEach(box => {
-                const name = box.nextElementSibling.value;
-                if (name) places.push(encodeURIComponent(name));
-            });
-
-            if (places.length === 0) return alert("Select at least one place! / 請先選擇地點！");
-
             let url = "";
-            if (places.length === 1) {
-                url = `https://www.google.com/maps/search/?api=1&query=${places[0]}`;
+            if (checked.length === 1) {
+                url = `https://www.google.com/maps/search/?api=1&query=${checked[0]}`;
             } else {
-                const destination = places.pop();
-                const waypoints = places.join('|');
-                url = `https://www.google.com/maps/dir/?api=1&destination=${destination}&waypoints=${waypoints}&travelmode=transit`;
+                const dest = checked.pop();
+                const waypoints = checked.join('|');
+                url = `https://www.google.com/maps/dir/?api=1&destination=${dest}&waypoints=${waypoints}&travelmode=transit`;
             }
-            
             window.open(url, '_blank');
         }
 
-        loadItinerary();
+        // Initialize App
+        if (Object.keys(allTrips).length > 0) {
+            loadTrip(Object.keys(allTrips)[Object.keys(allTrips).length - 1]);
+        } else {
+            createNewTrip();
+        }
     </script>
 </body>
 </html>
