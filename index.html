@@ -3,43 +3,66 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Daily Travel Planner</title>
+    <title>Travel Planner</title>
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body class="bg-slate-50 p-4 md:p-10 font-sans">
+<body class="bg-slate-50 p-4 md:p-10 font-sans text-slate-800">
 
-    <div class="max-w-2xl mx-auto bg-white shadow-xl rounded-3xl p-6 md:p-10 border border-slate-100">
-        <h1 class="text-4xl font-black text-slate-800 mb-8 text-center tracking-tight">Trip Planner</h1>
+    <div class="max-w-2xl mx-auto bg-white shadow-2xl rounded-[2rem] p-6 md:p-10 border border-slate-100">
         
-        <div class="bg-slate-100 p-6 rounded-2xl mb-8">
-            <h2 class="text-sm font-bold text-slate-500 uppercase mb-4 tracking-widest">1. Set Date Range</h2>
-            <div class="flex flex-wrap gap-4">
-                <div class="flex-1 min-w-[140px]">
-                    <label class="block text-[10px] font-bold text-slate-400 mb-1 uppercase">Arrive</label>
-                    <input type="date" id="startDate" class="w-full p-3 rounded-xl border-2 border-transparent focus:border-blue-500 outline-none">
-                </div>
-                <div class="flex-1 min-w-[140px]">
-                    <label class="block text-[10px] font-bold text-slate-400 mb-1 uppercase">Depart</label>
-                    <input type="date" id="endDate" class="w-full p-3 rounded-xl border-2 border-transparent focus:border-blue-500 outline-none">
-                </div>
-            </div>
-            <button onclick="generateSchedule()" class="w-full mt-4 py-3 bg-blue-600 text-white font-bold rounded-xl hover:bg-blue-700 transition-all shadow-lg shadow-blue-200">
-                Create Schedule
+        <div id="step1" class="text-center py-10">
+            <h1 class="text-5xl font-black mb-8 tracking-tight text-blue-600">Where to go?</h1>
+            <input type="text" id="tripSubject" placeholder="Enter trip name (e.g. Japan Adventure 2026)" 
+                   class="w-full p-5 text-xl border-2 border-slate-200 rounded-2xl focus:border-blue-500 outline-none transition-all shadow-sm">
+            <button onclick="startPlanning()" class="mt-6 px-10 py-4 bg-black text-white font-bold rounded-2xl hover:bg-slate-800 transition-all active:scale-95">
+                Start Planning ✈️
             </button>
         </div>
 
-        <div id="itineraryContainer" class="space-y-6 hidden">
-            <h2 class="text-sm font-bold text-slate-500 uppercase mb-2 tracking-widest">2. Your Daily Stops</h2>
-            <div id="dailySlots" class="space-y-4">
+        <div id="step2" class="hidden">
+            <div class="flex justify-between items-center mb-8 border-b pb-4">
+                <h2 id="displaySubject" class="text-3xl font-black text-slate-800 tracking-tight italic"></h2>
+                <button onclick="location.reload()" class="text-xs text-blue-500 font-bold hover:underline">Reset</button>
+            </div>
+
+            <div class="bg-blue-50 p-6 rounded-3xl mb-8 border border-blue-100">
+                <div class="flex flex-wrap gap-4">
+                    <div class="flex-1 min-w-[140px]">
+                        <label class="block text-[10px] font-bold text-slate-400 mb-1 uppercase">Arrive</label>
+                        <input type="date" id="startDate" class="w-full p-3 rounded-xl border-none outline-none shadow-sm">
+                    </div>
+                    <div class="flex-1 min-w-[140px]">
+                        <label class="block text-[10px] font-bold text-slate-400 mb-1 uppercase">Depart</label>
+                        <input type="date" id="endDate" class="w-full p-3 rounded-xl border-none outline-none shadow-sm">
+                    </div>
                 </div>
+                <button onclick="generateSchedule()" class="w-full mt-4 py-3 bg-blue-600 text-white font-bold rounded-xl hover:bg-blue-700 transition-all shadow-lg shadow-blue-200">
+                    Show My Days
+                </button>
+            </div>
+
+            <div id="itinerarySection" class="hidden space-y-8">
+                <div id="dailySlots" class="space-y-8">
+                    </div>
+            </div>
         </div>
     </div>
 
     <script>
+        function startPlanning() {
+            const subject = document.getElementById('tripSubject').value;
+            if (!subject) {
+                alert("Please name your trip first!");
+                return;
+            }
+            document.getElementById('displaySubject').innerText = subject;
+            document.getElementById('step1').classList.add('hidden');
+            document.getElementById('step2').classList.remove('hidden');
+        }
+
         function generateSchedule() {
             const start = new Date(document.getElementById('startDate').value);
             const end = new Date(document.getElementById('endDate').value);
-            const container = document.getElementById('itineraryContainer');
             const slotsDiv = document.getElementById('dailySlots');
 
             if (isNaN(start) || isNaN(end) || start > end) {
@@ -47,41 +70,52 @@
                 return;
             }
 
-            // Clear previous and show container
             slotsDiv.innerHTML = "";
-            container.classList.remove('hidden');
+            document.getElementById('itinerarySection').classList.remove('hidden');
 
-            // Loop through each day
             let current = new Date(start);
             while (current <= end) {
                 const dateStr = current.toDateString();
                 const dayBox = document.createElement('div');
-                dayBox.className = "p-5 border-2 border-slate-100 rounded-2xl bg-white hover:border-blue-100 transition-colors";
-                
+                dayBox.className = "space-y-3";
                 dayBox.innerHTML = `
-                    <p class="text-blue-600 font-bold text-sm mb-3">${dateStr}</p>
-                    <div class="flex gap-2">
-                        <input type="text" placeholder="Where for today?" 
-                               id="input-${dateStr}"
-                               class="flex-1 p-3 bg-slate-50 rounded-xl outline-none focus:bg-white focus:ring-2 focus:ring-blue-500 text-slate-700">
-                        <button onclick="go('${dateStr}')" 
-                                class="bg-black text-white px-5 py-3 rounded-xl font-bold hover:bg-slate-800 flex items-center gap-2">
-                            To Go 🚀
+                    <div class="flex items-center justify-between px-2">
+                        <p class="text-blue-600 font-black text-lg">${dateStr}</p>
+                        <button onclick="addStopField('${dateStr}')" class="text-xs bg-slate-100 hover:bg-slate-200 px-3 py-1 rounded-full font-bold text-slate-600">
+                            + Add Stop
                         </button>
                     </div>
+                    <div id="stops-${dateStr}" class="space-y-2"></div>
                 `;
                 slotsDiv.appendChild(dayBox);
+                addStopField(dateStr); 
                 current.setDate(current.getDate() + 1);
             }
         }
 
-        function go(dateId) {
-            const destination = document.getElementById(`input-${dateId}`).value;
+        function addStopField(dateId) {
+            const stopContainer = document.getElementById(`stops-${dateId}`);
+            const stopRow = document.createElement('div');
+            stopRow.className = "flex items-center gap-3 bg-slate-50 p-3 rounded-2xl border border-transparent hover:border-slate-200 transition-all group";
+            
+            stopRow.innerHTML = `
+                <button onclick="goToGoogleMap(this)" title="Link to Google Map" 
+                        class="w-6 h-6 border-2 border-slate-300 rounded-md hover:border-blue-500 hover:bg-blue-50 flex items-center justify-center transition-all">
+                    <div class="w-3 h-3 bg-blue-500 rounded-sm opacity-20"></div>
+                </button>
+                <input type="text" placeholder="Place name..." 
+                       class="flex-1 bg-transparent outline-none text-slate-700 font-medium">
+                <button onclick="this.parentElement.remove()" class="opacity-0 group-hover:opacity-100 text-slate-300 hover:text-red-400 transition-all px-2">✕</button>
+            `;
+            stopContainer.appendChild(stopRow);
+        }
+
+        function goToGoogleMap(btnElement) {
+            const destination = btnElement.nextElementSibling.value;
             if (!destination) {
-                alert("Type a place name for this day first!");
+                alert("Type a place name first!");
                 return;
             }
-            // Auto-fills name into Google Maps search
             const googleMapsUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(destination)}`;
             window.open(googleMapsUrl, '_blank');
         }
