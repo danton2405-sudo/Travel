@@ -3,137 +3,119 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Multi-Stop Travel Planner</title>
+    <title>Osaka Family Adventure 2026</title>
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body class="bg-slate-50 p-4 md:p-10 font-sans text-slate-800">
 
-    <div class="max-w-2xl mx-auto bg-white shadow-2xl rounded-[2.5rem] p-8 md:p-12 border border-slate-100">
+    <div class="max-w-2xl mx-auto bg-white shadow-2xl rounded-[2.5rem] p-6 md:p-10 border border-slate-100">
         
-        <div id="step1" class="text-center py-20">
-            <h1 class="text-5xl font-black mb-4 tracking-tight">Where to go?</h1>
-            <p class="text-slate-400 mb-10 font-medium">Give your adventure a name to start.</p>
-            <input type="text" id="tripSubject" placeholder="Trip Name (e.g. Osaka Getaway)" 
-                   class="w-full p-6 text-2xl border-2 border-slate-100 bg-slate-50 rounded-3xl focus:border-blue-500 focus:bg-white outline-none transition-all shadow-inner text-center">
-            <button onclick="startPlanning()" class="mt-8 px-12 py-5 bg-blue-600 text-white font-black text-xl rounded-3xl hover:bg-blue-700 transition-all shadow-xl shadow-blue-200 active:scale-95">
-                Let's Go! ✈️
-            </button>
+        <header class="text-center mb-10">
+            <h1 class="text-4xl font-black tracking-tight text-blue-600 mb-2 italic">Osaka Family Adventure 2026</h1>
+            <p class="text-slate-400 font-bold uppercase text-[10px] tracking-widest">Feb 23 – Mar 1</p>
+        </header>
+
+        <div class="mb-8 overflow-x-auto">
+            <div class="flex gap-2 pb-2" id="dayTabs">
+                </div>
         </div>
 
-        <div id="step2" class="hidden">
-            <header class="flex justify-between items-center mb-10">
-                <h2 id="displaySubject" class="text-4xl font-black text-slate-900 tracking-tighter italic"></h2>
-                <button onclick="location.reload()" class="text-xs bg-slate-100 px-4 py-2 rounded-full font-bold text-slate-400 hover:text-red-500">Reset Trip</button>
-            </header>
-
-            <div class="bg-slate-900 p-8 rounded-[2rem] mb-10 shadow-2xl">
-                <div class="flex gap-4">
-                    <div class="flex-1">
-                        <label class="text-[10px] font-black text-slate-500 uppercase ml-1">Arrive</label>
-                        <input type="date" id="startDate" class="w-full p-3 mt-1 rounded-xl bg-slate-800 text-white border-none focus:ring-2 focus:ring-blue-500 outline-none">
-                    </div>
-                    <div class="flex-1">
-                        <label class="text-[10px] font-black text-slate-500 uppercase ml-1">Depart</label>
-                        <input type="date" id="endDate" class="w-full p-3 mt-1 rounded-xl bg-slate-800 text-white border-none focus:ring-2 focus:ring-blue-500 outline-none">
-                    </div>
-                </div>
-                <button onclick="generateSchedule()" class="w-full mt-6 py-4 bg-blue-500 text-white font-black rounded-2xl hover:bg-blue-400 transition-all">
-                    Show My Days
-                </button>
+        <div id="itineraryContent" class="space-y-4">
             </div>
 
-            <div id="itinerarySection" class="hidden relative pb-24">
-                <div id="dailySlots" class="space-y-10"></div>
-                
-                <div class="fixed bottom-10 left-1/2 -translate-x-1/2 w-full max-w-xs px-4">
-                    <button onclick="goToSelectedRoute()" 
-                            class="w-full py-5 bg-blue-600 text-white font-black text-xl rounded-3xl shadow-2xl shadow-blue-400 hover:bg-blue-700 transition-all active:scale-95 flex items-center justify-center gap-3">
-                        TO GO 🚀
-                        <span id="selectCount" class="bg-blue-800 px-3 py-1 rounded-full text-sm">0</span>
-                    </button>
-                </div>
-            </div>
+        <div class="mt-10 pt-6 border-t border-slate-100 text-center">
+            <p class="text-[10px] font-bold text-slate-300 uppercase mb-4">Click "To Go" for transportation info</p>
         </div>
     </div>
 
     <script>
-        function startPlanning() {
-            const subject = document.getElementById('tripSubject').value;
-            if (!subject) return alert("Please name your trip!");
-            document.getElementById('displaySubject').innerText = subject;
-            document.getElementById('step1').classList.add('hidden');
-            document.getElementById('step2').classList.remove('hidden');
-        }
+        // Data extracted from "Travel trial" document 
+        const tripData = {
+            "Feb 23": [
+                { name: "KIX Terminal 1 2/F Food Court", note: "Lunch upon arrival" },
+                { name: "OMO Kansai Airport by Hoshino Resorts", note: "Check-in" },
+                { name: "Rinku Premium Outlets", note: "Shopping (1.5–2 hours)" },
+                { name: "Super Center TRIAL Rinku Town", note: "Night supermarket haul" }
+            ],
+            "Feb 24": [
+                { name: "Eiraku Yumenomori Park", note: "Kids outdoor play" },
+                { name: "Café Liaison Mizuma", note: "Coffee & snacks" },
+                { name: "Rinku Premium Outlets", note: "Final shopping" },
+                { name: "Hotel Hankyu RESPIRE OSAKA", note: "Umeda Base Check-in" },
+                { name: "Yakiniku Japan Yodobashi Umeda", note: "Dinner (7:00 PM)" },
+                { name: "Yodobashi Umeda Gachapon", note: "Late-night toys" }
+            ],
+            "Feb 25": [
+                { name: "Bread, Espresso & Sakaisuji Club", note: "Historic club breakfast" },
+                { name: "Osaka Castle Park", note: "Morning walk" },
+                { name: "Jo-Terrace Osaka", note: "Family rest" },
+                { name: "Unagi Yondaime Kikukawa Namba", note: "Eel Lunch (1:00 PM)" },
+                { name: "Shinsaibashi PARCO", note: "Nintendo & Pokemon Center" },
+                { name: "Kaiten Sushi Ginza Onodera Umeda", note: "Sushi Dinner" }
+            ],
+            "Feb 26": [
+                { name: "Ogimachi Park", note: "Outdoor slides" },
+                { name: "Kids Plaza Osaka", note: "Interactive museum" },
+                { name: "The City Bakery Brasserie Rubin", note: "Western lunch" },
+                { name: "Solaniwa Onsen", note: "Hot spring theme park" },
+                { name: "Yakitori Kibitaki Sanntyoume", note: "Skewer dinner" }
+            ],
+            "Feb 27": [
+                { name: "Supermarket Osaka", note: "Morning supply run" },
+                { name: "Katsuo-ji Temple", note: "Daruma dolls" },
+                { name: "RISONARE Osaka", note: "Atelier & Climbing net" }
+            ],
+            "Feb 28": [
+                { name: "Rokko Mountain Snow Park", note: "Sledding & Snow play" },
+                { name: "Hankyu Sanban Gai", note: "Evening shopping" },
+                { name: "ICHIROKU SARYO", note: "Dinner option" },
+                { name: "Hotel Nikko Kansai Airport", note: "Airport hotel check-in" }
+            ],
+            "Mar 1": [
+                { name: "KIX Terminal 1", note: "Flight CX567 (09:20 AM)" }
+            ]
+        };
 
-        function generateSchedule() {
-            const start = new Date(document.getElementById('startDate').value);
-            const end = new Date(document.getElementById('endDate').value);
-            const slotsDiv = document.getElementById('dailySlots');
+        let currentDay = "Feb 23";
 
-            if (isNaN(start) || isNaN(end) || start > end) return alert("Pick valid dates!");
-
-            slotsDiv.innerHTML = "";
-            document.getElementById('itinerarySection').classList.remove('hidden');
-
-            let current = new Date(start);
-            while (current <= end) {
-                const dateStr = current.toDateString();
-                const dayBox = document.createElement('div');
-                dayBox.innerHTML = `
-                    <div class="flex items-center justify-between mb-4 px-2">
-                        <h3 class="text-xl font-black text-slate-800">${dateStr}</h3>
-                        <button onclick="addStopField('${dateStr}')" class="text-[10px] font-bold text-blue-500 uppercase">+ Add Stop</button>
-                    </div>
-                    <div id="stops-${dateStr}" class="space-y-3"></div>
-                `;
-                slotsDiv.appendChild(dayBox);
-                addStopField(dateStr); 
-                current.setDate(current.getDate() + 1);
-            }
-        }
-
-        function addStopField(dateId) {
-            const stopContainer = document.getElementById(`stops-${dateId}`);
-            const row = document.createElement('div');
-            row.className = "flex items-center gap-4 bg-slate-50 p-4 rounded-2xl border-2 border-transparent hover:border-blue-100 transition-all";
-            row.innerHTML = `
-                <input type="checkbox" onchange="updateCount()" class="w-6 h-6 rounded-lg accent-blue-600 cursor-pointer">
-                <input type="text" placeholder="Place name..." 
-                       class="flex-1 bg-transparent outline-none font-bold text-slate-700 placeholder:text-slate-300">
-            `;
-            stopContainer.appendChild(row);
-        }
-
-        function updateCount() {
-            const checked = document.querySelectorAll('input[type="checkbox"]:checked');
-            document.getElementById('selectCount').innerText = checked.length;
-        }
-
-        function goToSelectedRoute() {
-            const checkedBoxes = document.querySelectorAll('input[type="checkbox"]:checked');
-            const places = [];
-            
-            checkedBoxes.forEach(box => {
-                const name = box.nextElementSibling.value;
-                if (name) places.push(encodeURIComponent(name));
+        function init() {
+            const tabs = document.getElementById('dayTabs');
+            Object.keys(tripData).forEach(day => {
+                const btn = document.createElement('button');
+                btn.innerText = day;
+                btn.className = `px-4 py-2 rounded-full font-bold text-xs whitespace-nowrap transition-all ${day === currentDay ? 'bg-blue-600 text-white shadow-lg shadow-blue-200' : 'bg-slate-100 text-slate-400'}`;
+                btn.onclick = () => { currentDay = day; render(); init(); };
+                tabs.appendChild(btn);
             });
-
-            if (places.length === 0) return alert("Select at least one place first!");
-
-            // Google Maps Multi-Stop Logic
-            // If 1 place: Simple search
-            // If many: Directions route
-            let url = "";
-            if (places.length === 1) {
-                url = `https://www.google.com/maps/search/?api=1&query=${places[0]}`;
-            } else {
-                const destination = places.pop();
-                const waypoints = places.join('|');
-                url = `https://www.google.com/maps/dir/?api=1&destination=${destination}&waypoints=${waypoints}&travelmode=transit`;
-            }
-            
-            window.open(url, '_blank');
+            render();
         }
+
+        function render() {
+            const container = document.getElementById('itineraryContent');
+            container.innerHTML = "";
+            document.getElementById('dayTabs').innerHTML = ""; // Refresh tabs styling
+
+            tripData[currentDay].forEach(stop => {
+                const card = document.createElement('div');
+                card.className = "flex justify-between items-center p-4 bg-slate-50 rounded-2xl border border-transparent hover:border-blue-100 transition-all";
+                
+                const googleMapsUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(stop.name)}`;
+
+                card.innerHTML = `
+                    <div>
+                        <h3 class="font-bold text-slate-800">${stop.name}</h3>
+                        <p class="text-[10px] text-slate-400 font-bold uppercase italic">${stop.note}</p>
+                    </div>
+                    <a href="${googleMapsUrl}" target="_blank" 
+                       class="bg-black text-white px-4 py-2 rounded-xl font-bold text-xs hover:bg-slate-800 flex items-center gap-2">
+                        To Go 🚀
+                    </a>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        init();
     </script>
 </body>
 </html>
