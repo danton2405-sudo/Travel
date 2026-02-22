@@ -81,29 +81,41 @@
         let currentTripId = null;
         let allTrips = JSON.parse(localStorage.getItem('travelHistory_v5') || '{}');
 
-        // --- THE "SMART" LOGIC ---
-        function processImport() {
-            const rawText = document.getElementById('importArea').value;
-            if (!rawText) return alert("Paste some text first!");
-            
-            // Logic to split by day (looking for things like "Day 1", "Feb 23", "Mon")
-            const lines = rawText.split('\n').map(l => l.trim()).filter(l => l !== "");
-            
-            // For now, let's put them into the current trip's first few days
-            const containers = document.querySelectorAll('[id^="stops-"]');
-            if (containers.length === 0) return alert("Set your dates first!");
+        // --- THE UPDATED "SMART" LOGIC ---
+function processImport() {
+    const rawText = document.getElementById('importArea').value;
+    if (!rawText) return alert("Paste your schedule first!");
+    
+    // Split text into individual lines
+    const lines = rawText.split('\n').map(l => l.trim()).filter(l => l !== "");
+    
+    // Get all the date containers currently on your screen
+    const dayContainers = Array.from(document.querySelectorAll('[id^="stops-"]'));
+    if (dayContainers.length === 0) return alert("Please set your Arrival and Departure dates first!");
 
-            let dayIndex = 0;
-            lines.forEach(line => {
-                if (dayIndex < containers.length) {
-                    addStopField(containers[dayIndex].id.replace('stops-', ''), line);
-                }
-            });
+    let currentDayIndex = -1;
+
+    lines.forEach(line => {
+        // Check if the line indicates a NEW DAY (e.g., "Day 1", "Day 2", or "Feb 23")
+        const isNewDay = /Day \d+|Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec/i.test(line);
+        
+        if (isNewDay) {
+            currentDayIndex++; // Move to the next day container in the app
+        } else if (currentDayIndex >= 0 && currentDayIndex < dayContainers.length) {
+            // It's a location line (e.g., starts with "[ ]")
+            // Clean up the "[ ]" and the extra notes for a clean Google Map search
+            const cleanLocation = line.replace(/\[\s*\]/g, '').split('–')[0].trim();
             
-            document.getElementById('importArea').value = "";
-            alert("Import complete! Check your days below.");
-            saveCurrentTrip();
+            if (cleanLocation) {
+                const dateId = dayContainers[currentDayIndex].id.replace('stops-', '');
+                addStopField(dateId, cleanLocation);
+            }
         }
+    });
+    document.getElementById('importArea').value = "";
+    alert("Smart Import Successful! Locations mapped to dates.");
+    saveCurrentTrip();
+}
 
         function toggleSidebar() {
             const sidebar = document.getElementById('sidebar');
