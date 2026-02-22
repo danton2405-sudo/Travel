@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Travel Manager Pro</title>
+    <title>Travel Manager + Doc Links</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         .sidebar { width: 280px; transition: all 0.3s; }
@@ -28,7 +28,7 @@
     <main class="flex-1 flex flex-col h-full overflow-y-auto relative">
         <div class="max-w-3xl mx-auto w-full p-6 md:p-12 pb-40">
             
-            <div class="group relative mb-12 text-center">
+            <div class="group relative mb-8 text-center">
                 <input type="text" id="tripSubject" oninput="saveCurrentTrip()"
                        class="text-5xl font-black text-slate-900 bg-transparent border-b-4 border-transparent hover:border-slate-200 focus:border-blue-500 outline-none w-full text-center transition-all pb-2" 
                        value="My Trip">
@@ -36,7 +36,7 @@
             </div>
 
             <div class="bg-white p-8 rounded-[2.5rem] shadow-xl border border-slate-100 mb-12">
-                <div class="flex flex-wrap gap-6">
+                <div class="flex flex-wrap gap-6 mb-8 pb-8 border-b border-slate-50">
                     <div class="flex-1">
                         <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Arrive</label>
                         <input type="date" id="startDate" onchange="generateSchedule(); saveCurrentTrip();" class="w-full p-4 bg-slate-50 rounded-2xl outline-none mt-2 font-bold">
@@ -45,6 +45,15 @@
                         <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Depart</label>
                         <input type="date" id="endDate" onchange="generateSchedule(); saveCurrentTrip();" class="w-full p-4 bg-slate-50 rounded-2xl outline-none mt-2 font-bold">
                     </div>
+                </div>
+
+                <div>
+                    <div class="flex justify-between items-center mb-4">
+                        <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Documents & Links</label>
+                        <button onclick="addDocLink()" class="text-[10px] font-bold text-blue-500 hover:text-blue-700">+ Add Doc</button>
+                    </div>
+                    <div id="docLinksContainer" class="space-y-3">
+                        </div>
                 </div>
             </div>
 
@@ -62,40 +71,40 @@
 
     <script>
         let currentTripId = null;
-        let allTrips = JSON.parse(localStorage.getItem('travelHistory_v3') || '{}');
+        let allTrips = JSON.parse(localStorage.getItem('travelHistory_v4') || '{}');
 
-        // --- Auto Translation Logic ---
         async function translateText(inputElement) {
             const text = inputElement.value;
-            if (!text || text.includes('(')) return; // Don't translate if empty or already translated
-
-            inputElement.classList.add('animate-pulse'); // Visual feedback
+            if (!text || text.includes('(')) return;
+            inputElement.classList.add('animate-pulse');
             try {
                 const res = await fetch(`https://api.mymemory.translated.net/get?q=${encodeURIComponent(text)}&langpair=en|zh-HK`);
                 const data = await res.json();
                 if (data.responseData.translatedText) {
-                    const translated = data.responseData.translatedText;
-                    inputElement.value = `${text} (${translated})`;
+                    inputElement.value = `${text} (${data.responseData.translatedText})`;
                     saveCurrentTrip();
                 }
-            } catch (err) { console.error("Translation failed", err); }
+            } catch (err) { console.error(err); }
             inputElement.classList.remove('animate-pulse');
         }
 
         function createNewTrip() {
             currentTripId = 'trip_' + Date.now();
-            allTrips[currentTripId] = { subject: "New Adventure", start: "", end: "", days: {} };
+            allTrips[currentTripId] = { subject: "New Adventure", start: "", end: "", days: {}, docLinks: [] };
             loadTrip(currentTripId);
         }
 
-        function deleteTrip(id, event) {
-            event.stopPropagation();
-            if (confirm("Delete this trip?")) {
-                delete allTrips[id];
-                localStorage.setItem('travelHistory_v3', JSON.stringify(allTrips));
-                const remaining = Object.keys(allTrips);
-                remaining.length > 0 ? loadTrip(remaining[0]) : createNewTrip();
-            }
+        function addDocLink(name = "", url = "") {
+            const container = document.getElementById('docLinksContainer');
+            const div = document.createElement('div');
+            div.className = "flex items-center gap-3 bg-slate-50 p-3 rounded-xl border border-transparent hover:border-blue-100 group";
+            div.innerHTML = `
+                <input type="text" placeholder="Doc Name" value="${name}" oninput="saveCurrentTrip()" class="w-1/3 bg-transparent font-bold text-sm text-blue-600 outline-none">
+                <input type="text" placeholder="Paste Link Here" value="${url}" oninput="saveCurrentTrip()" class="flex-1 bg-transparent text-sm text-slate-400 outline-none">
+                <button onclick="window.open(this.previousElementSibling.value, '_blank')" class="text-xs font-bold text-slate-400 hover:text-blue-500">Open ↗</button>
+                <button onclick="this.parentElement.remove(); saveCurrentTrip();" class="text-slate-300 hover:text-red-400 px-1 opacity-0 group-hover:opacity-100">✕</button>
+            `;
+            container.appendChild(div);
         }
 
         function loadTrip(id) {
@@ -104,6 +113,10 @@
             document.getElementById('tripSubject').value = trip.subject;
             document.getElementById('startDate').value = trip.start;
             document.getElementById('endDate').value = trip.end;
+            
+            document.getElementById('docLinksContainer').innerHTML = "";
+            (trip.docLinks || []).forEach(link => addDocLink(link.name, link.url));
+            
             generateSchedule(true);
             updateHistoryMenu();
         }
@@ -114,13 +127,32 @@
             trip.subject = document.getElementById('tripSubject').value;
             trip.start = document.getElementById('startDate').value;
             trip.end = document.getElementById('endDate').value;
+            
+            // Save Links
+            trip.docLinks = Array.from(document.querySelectorAll('#docLinksContainer > div')).map(div => ({
+                name: div.querySelectorAll('input')[0].value,
+                url: div.querySelectorAll('input')[1].value
+            }));
+
+            // Save Stops
             trip.days = {};
             document.querySelectorAll('[id^="stops-"]').forEach(container => {
                 const dateId = container.id.replace('stops-', '');
                 trip.days[dateId] = Array.from(container.querySelectorAll('input[type="text"]')).map(i => i.value);
             });
-            localStorage.setItem('travelHistory_v3', JSON.stringify(allTrips));
+            localStorage.setItem('travelHistory_v4', JSON.stringify(allTrips));
             updateHistoryMenu();
+        }
+
+        // Rest of the functions (History, Schedule, Add Stop, To Go) same as before...
+        function deleteTrip(id, event) {
+            event.stopPropagation();
+            if (confirm("Delete trip?")) {
+                delete allTrips[id];
+                localStorage.setItem('travelHistory_v4', JSON.stringify(allTrips));
+                const rem = Object.keys(allTrips);
+                rem.length > 0 ? loadTrip(rem[0]) : createNewTrip();
+            }
         }
 
         function updateHistoryMenu() {
