@@ -3,12 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Travel Manager Cloud Pro</title>
+    <title>Osaka Trip Manager</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    
     <script src="https://www.gstatic.com/firebasejs/9.1.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.1.1/firebase-database-compat.js"></script>
-
     <style>
         #sidebar { transition: transform 0.3s ease-in-out; z-index: 200; }
         @media (max-width: 768px) {
@@ -22,88 +20,55 @@
 </head>
 <body class="bg-slate-50 font-sans text-slate-800 flex h-screen overflow-hidden">
 
-    <button onclick="toggleSidebar()" class="fixed top-4 left-4 z-[210] bg-slate-900 text-white p-3 rounded-xl shadow-xl flex items-center justify-center">
-        <span id="menuIcon" class="text-xl">☰</span>
-    </button>
+    <button onclick="toggleSidebar()" class="fixed top-4 left-4 z-[210] bg-slate-900 text-white p-3 rounded-xl shadow-xl">☰</button>
 
-    <aside id="sidebar" class="bg-slate-900 text-slate-300 flex flex-col h-full border-r border-slate-800 shrink-0 md:w-[280px]">
+    <aside id="sidebar" class="bg-slate-900 text-slate-300 flex flex-col h-full shrink-0 md:w-[280px]">
         <div class="p-6 border-b border-slate-800 pt-20 md:pt-6">
-            <button onclick="createNewTrip()" class="w-full py-3 px-4 bg-blue-600 hover:bg-blue-500 text-white rounded-xl font-bold shadow-lg mb-2 italic">
-                + New Trip
-            </button>
-            <button onclick="openImportModal()" class="w-full py-3 px-4 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl font-bold flex items-center justify-center gap-2">
-                ⚡ Smart Import
-            </button>
+            <button onclick="createNewTrip()" class="w-full py-3 bg-blue-600 text-white rounded-xl font-bold mb-2">+ New Trip</button>
+            <button onclick="document.getElementById('importModal').classList.remove('hidden')" class="w-full py-3 bg-emerald-600 text-white rounded-xl font-bold flex items-center justify-center gap-2">⚡ Smart Import</button>
         </div>
         <div class="flex-1 overflow-y-auto p-4 space-y-2" id="historyList">
-            <p class="text-[10px] uppercase font-black text-slate-500 mb-4 px-2 tracking-widest italic">History</p>
+            <p class="text-[10px] uppercase font-black text-slate-500 mb-4 px-2 tracking-widest">History</p>
         </div>
     </aside>
 
     <main class="flex-1 flex flex-col h-full overflow-y-auto relative">
         <div class="max-w-3xl mx-auto w-full p-5 md:p-12 pb-44">
-            
-            <div class="text-center mt-12 md:mt-0 mb-10">
-                <input type="text" id="tripSubject" oninput="saveCurrentTrip()"
-                       class="text-3xl md:text-5xl font-black text-slate-900 bg-transparent border-b-4 border-transparent focus:border-blue-500 outline-none w-full text-center pb-2 italic" 
-                       value="Loading...">
-                <div class="flex flex-col items-center gap-2 mt-4">
-                    <button onclick="copyShareLink()" class="text-[10px] font-bold text-blue-600 bg-blue-50 border border-blue-200 px-4 py-1 rounded-full hover:bg-blue-100 transition-all">
-                        🔗 COPY SHARE LINK
-                    </button>
-                    <p class="text-[9px] text-slate-400 uppercase font-bold tracking-tighter">Share this URL to see this trip on any device</p>
-                </div>
+            <div class="text-center mt-12 md:mt-0 mb-8">
+                <input type="text" id="tripSubject" oninput="saveCurrentTrip()" class="text-3xl md:text-5xl font-black text-slate-900 bg-transparent outline-none w-full text-center italic" value="Osaka Adventure 2026">
+                <button onclick="copyShareLink()" class="text-[10px] mt-4 text-blue-500 font-bold border border-blue-200 px-3 py-1 rounded-full">🔗 COPY SHARE LINK</button>
             </div>
 
-            <div class="bg-white p-6 md:p-8 rounded-[2.5rem] shadow-xl border border-slate-100 mb-10">
-                <div class="flex flex-col md:flex-row gap-4 mb-6 pb-6 border-b border-slate-50">
-                    <div class="flex-1">
-                        <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest italic">Arrive</label>
-                        <input type="date" id="startDate" onchange="generateSchedule(); saveCurrentTrip();" class="w-full p-3 bg-slate-50 rounded-xl outline-none mt-2 font-bold border-2 border-transparent focus:border-blue-500">
-                    </div>
-                    <div class="flex-1">
-                        <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest italic">Depart</label>
-                        <input type="date" id="endDate" onchange="generateSchedule(); saveCurrentTrip();" class="w-full p-3 bg-slate-50 rounded-xl outline-none mt-2 font-bold border-2 border-transparent focus:border-blue-500">
-                    </div>
-                </div>
-
-                <div>
-                    <div class="flex justify-between items-center mb-4">
-                        <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1 italic">Documents & Links</label>
-                        <button onclick="addDocLink()" class="text-[10px] font-bold text-blue-600 hover:underline">+ Add Link</button>
-                    </div>
-                    <div id="docLinksContainer" class="space-y-3"></div>
-                </div>
+            <div class="bg-white p-6 md:p-8 rounded-[2rem] shadow-xl border border-slate-100 mb-10">
+                <div id="docLinksContainer" class="space-y-3 mb-4"></div>
+                <button onclick="addDocLink()" class="text-[10px] font-bold text-blue-600 tracking-widest uppercase">+ Add Link / 增加連結</button>
             </div>
 
             <div id="dailySlots" class="space-y-12"></div>
+            
+            <button onclick="addNewDateHeader()" class="w-full py-6 mt-8 border-2 border-dashed border-slate-200 rounded-3xl text-slate-400 font-bold hover:bg-slate-50 transition-all">+ MANUALLY ADD DATE / 手動增加日期</button>
         </div>
 
-        <div class="fixed bottom-6 left-1/2 -translate-x-1/2 w-[90%] md:w-auto max-w-md z-[150]">
-            <button onclick="goToSelectedRoute()" 
-                    class="w-full md:px-12 py-5 bg-slate-900 text-white font-black text-xl rounded-full shadow-2xl hover:bg-black flex items-center justify-center gap-4 border-2 border-slate-800 italic">
-                TO GO 🚀
-                <span id="selectCount" class="bg-blue-600 px-3 py-1 rounded-full text-sm">0</span>
+        <div class="fixed bottom-6 left-1/2 -translate-x-1/2 w-[95%] md:w-auto z-[150]">
+            <button onclick="goToSelectedRoute()" class="w-full md:px-16 py-5 bg-slate-900 text-white font-black text-xl rounded-full shadow-2xl flex items-center justify-center gap-4 italic transition-all active:scale-95">
+                TO GO 🚀 <span id="selectCount" class="bg-blue-600 px-3 py-1 rounded-full text-sm">0</span>
             </button>
         </div>
     </main>
 
-    <div id="importModal" class="fixed inset-0 bg-black/60 z-[300] hidden flex items-center justify-center p-4 backdrop-blur-sm">
+    <div id="importModal" class="fixed inset-0 bg-black/50 z-[300] hidden flex items-center justify-center p-4 backdrop-blur-sm">
         <div class="bg-white rounded-[2.5rem] p-8 w-full max-w-lg shadow-2xl">
-            <h2 class="text-2xl font-black mb-2 italic text-blue-600">Smart Import</h2>
-            <p class="text-xs text-slate-400 mb-6 font-bold uppercase italic tracking-widest">Paste your Google Doc text here</p>
+            <h2 class="text-2xl font-black mb-4 italic text-blue-600 font-black">Smart Import</h2>
             <textarea id="importArea" placeholder="Day 1: ...
-[ ] Destination A" 
-                      class="w-full h-48 p-4 bg-slate-50 border-2 border-slate-100 rounded-2xl mb-6 text-sm outline-none focus:border-blue-500"></textarea>
+[ ] KIX Airport" class="w-full h-48 p-4 bg-slate-50 border-2 border-slate-100 rounded-3xl mb-4 text-sm outline-none focus:border-blue-500 transition-all"></textarea>
             <div class="flex gap-3">
-                <button onclick="processImport()" class="flex-1 py-4 bg-blue-600 text-white font-bold rounded-2xl italic shadow-lg shadow-blue-200">Process ⚡</button>
-                <button onclick="closeImportModal()" class="px-6 py-4 bg-slate-100 text-slate-600 font-bold rounded-2xl">Cancel</button>
+                <button onclick="processImport()" class="flex-1 py-4 bg-blue-600 text-white font-bold rounded-2xl shadow-lg shadow-blue-200">Process ⚡</button>
+                <button onclick="document.getElementById('importModal').classList.add('hidden')" class="px-6 py-4 bg-slate-100 rounded-2xl font-bold">Cancel</button>
             </div>
         </div>
     </div>
 
     <script>
-        // FIREBASE CONFIG FROM YOUR SCREENSHOTS
         const firebaseConfig = {
             apiKey: "AIzaSyDToeqCPkabdsgl9wzdQ96tCdT-w0CermE",
             authDomain: "travelapp-8fc45.firebaseapp.com",
@@ -111,8 +76,7 @@
             projectId: "travelapp-8fc45",
             storageBucket: "travelapp-8fc45.firebasestorage.app",
             messagingSenderId: "197566192502",
-            appId: "1:197566192502:web:4a42bed32c40cfc3007857",
-            measurementId: "G-M43KW9MSZV"
+            appId: "1:197566192502:web:4a42bed32c40cfc3007857"
         };
 
         firebase.initializeApp(firebaseConfig);
@@ -120,171 +84,167 @@
         let currentTripId = null;
 
         function toggleSidebar() { document.getElementById('sidebar').classList.toggle('open'); }
-        function openImportModal() { document.getElementById('importModal').classList.remove('hidden'); }
-        function closeImportModal() { document.getElementById('importModal').classList.add('hidden'); }
-
+        
         function copyShareLink() {
             const url = `${window.location.origin}${window.location.pathname}?id=${currentTripId}`;
-            navigator.clipboard.writeText(url).then(() => alert("Shareable Link Copied! 🔗\nSend this to your family."));
+            navigator.clipboard.writeText(url);
+            alert("Share Link Copied!");
         }
 
-        async function translateText(inputElement) {
-            const text = inputElement.value;
-            if (!text || text.includes('(')) return;
+        async function translateText(enInput) {
+            const text = enInput.value;
+            const zhInput = enInput.nextElementSibling;
+            if (!text || zhInput.value) return; 
+            
+            enInput.classList.add('animate-pulse');
             try {
                 const res = await fetch(`https://api.mymemory.translated.net/get?q=${encodeURIComponent(text)}&langpair=en|zh-HK`);
                 const data = await res.json();
                 if (data.responseData.translatedText) {
-                    inputElement.value = `${text} (${data.responseData.translatedText})`;
+                    zhInput.value = data.responseData.translatedText;
                     saveCurrentTrip();
                 }
             } catch (err) {}
+            enInput.classList.remove('animate-pulse');
         }
 
         function createNewTrip() {
             currentTripId = 'trip_' + Date.now();
-            const emptyTrip = { subject: "New Adventure", start: "", end: "", days: {}, docLinks: [], timestamp: Date.now() };
-            db.ref('trips/' + currentTripId).set(emptyTrip);
+            saveCurrentTrip();
             loadTrip(currentTripId);
-            if (window.innerWidth < 768) toggleSidebar();
         }
 
-        function loadTrip(id) {
-            currentTripId = id;
-            db.ref('trips/' + id).on('value', (snapshot) => {
-                const trip = snapshot.val();
-                if (!trip) return;
-                document.getElementById('tripSubject').value = trip.subject || "";
-                document.getElementById('startDate').value = trip.start || "";
-                document.getElementById('endDate').value = trip.end || "";
-                const linkContainer = document.getElementById('docLinksContainer');
-                linkContainer.innerHTML = "";
-                (trip.docLinks || []).forEach(link => addDocLink(link.name, link.url));
-                generateSchedule(true, trip.days || {});
-            });
-            updateHistoryList();
-            const newUrl = `${window.location.origin}${window.location.pathname}?id=${id}`;
-            window.history.pushState({path:newUrl},'',newUrl);
+        function addNewDateHeader(dateText = "New Date") {
+            const container = document.getElementById('dailySlots');
+            const dateId = 'date_' + Date.now() + Math.random().toString(36).substr(2, 5);
+            const box = document.createElement('div');
+            box.id = 'container-' + dateId;
+            box.innerHTML = `
+                <div class="flex items-center justify-between mb-4 border-b pb-2">
+                    <input type="text" value="${dateText}" oninput="saveCurrentTrip()" class="text-xl font-black text-slate-900 bg-transparent outline-none flex-1">
+                    <div class="flex gap-2">
+                        <button onclick="addStopField('${dateId}')" class="text-[10px] font-bold text-blue-600 bg-blue-50 px-3 py-1 rounded-full">+ Stop</button>
+                        <button onclick="document.getElementById('container-${dateId}').remove(); saveCurrentTrip();" class="text-[10px] font-bold text-red-400 bg-red-50 px-3 py-1 rounded-full">Delete</button>
+                    </div>
+                </div>
+                <div id="stops-${dateId}" class="space-y-4"></div>
+            `;
+            container.appendChild(box);
+            return dateId;
+        }
+
+        function addStopField(dateId, enVal = "", zhVal = "") {
+            const container = document.getElementById(`stops-${dateId}`);
+            if (!container) return;
+            const row = document.createElement('div');
+            row.className = "flex items-start gap-4 bg-white p-5 rounded-3xl shadow-sm border border-slate-100 group transition-all hover:shadow-md";
+            row.innerHTML = `
+                <input type="checkbox" onchange="updateCount()" class="mt-2 w-6 h-6 rounded-lg accent-blue-600 border-2">
+                <div class="flex-1 flex flex-col gap-1">
+                    <input type="text" value="${enVal}" onblur="translateText(this)" oninput="saveCurrentTrip()" placeholder="Destination (English)" class="font-black text-slate-800 text-lg bg-transparent outline-none w-full">
+                    <input type="text" value="${zhVal}" oninput="saveCurrentTrip()" placeholder="目的地 (中文)" class="font-bold text-slate-400 text-sm bg-transparent outline-none w-full italic">
+                </div>
+                <button onclick="this.parentElement.remove(); saveCurrentTrip(); updateCount();" class="mt-2 text-slate-200 hover:text-red-400 opacity-0 group-hover:opacity-100 transition-all font-bold text-xl">✕</button>
+            `;
+            container.appendChild(row);
         }
 
         function saveCurrentTrip() {
             if (!currentTripId) return;
             const trip = {
                 subject: document.getElementById('tripSubject').value,
-                start: document.getElementById('startDate').value,
-                end: document.getElementById('endDate').value,
                 docLinks: Array.from(document.querySelectorAll('#docLinksContainer > div')).map(div => ({
                     name: div.querySelectorAll('input')[0].value,
                     url: div.querySelectorAll('input')[1].value
                 })),
-                days: {},
-                timestamp: Date.now()
+                sections: Array.from(document.querySelectorAll('#dailySlots > div')).map(div => ({
+                    dateTitle: div.querySelector('input').value,
+                    stops: Array.from(div.querySelectorAll('[id^="stops-"] > div')).map(s => ({
+                        en: s.querySelectorAll('input[type="text"]')[0].value,
+                        zh: s.querySelectorAll('input[type="text"]')[1].value
+                    }))
+                }))
             };
-            document.querySelectorAll('[id^="stops-"]').forEach(container => {
-                const dateId = container.id.replace('stops-', '');
-                trip.days[dateId] = Array.from(container.querySelectorAll('input[type="text"]')).map(i => i.value);
-            });
-            db.ref('trips/' + currentTripId).update(trip);
+            db.ref('trips/' + currentTripId).set(trip);
+            updateHistoryMenu();
         }
 
-        function updateHistoryList() {
-            db.ref('trips').limitToLast(10).once('value', (snapshot) => {
-                const list = document.getElementById('historyList');
-                list.innerHTML = '<p class="text-[10px] uppercase font-black text-slate-500 mb-4 px-2 tracking-widest italic">History</p>';
-                const data = snapshot.val();
-                if (!data) return;
-                Object.keys(data).sort((a,b) => (data[b].timestamp || 0) - (data[a].timestamp || 0)).forEach(id => {
-                    const item = document.createElement('div');
-                    item.className = `flex items-center justify-between p-3 rounded-xl cursor-pointer ${id === currentTripId ? 'bg-blue-600 text-white shadow-lg' : 'hover:bg-slate-800 text-slate-400'}`;
-                    item.onclick = () => loadTrip(id);
-                    item.innerHTML = `<span class="truncate font-bold text-sm flex-1">${data[id].subject || 'Untitled'}</span>
-                                      <button onclick="deleteTrip('${id}', event)" class="ml-2 text-xs opacity-50 hover:text-red-400">✕</button>`;
-                    list.appendChild(item);
+        function loadTrip(id) {
+            currentTripId = id;
+            db.ref('trips/' + id).on('value', (snap) => {
+                const trip = snap.val();
+                if (!trip) return;
+                document.getElementById('tripSubject').value = trip.subject || "";
+                document.getElementById('docLinksContainer').innerHTML = "";
+                (trip.docLinks || []).forEach(link => addDocLink(link.name, link.url));
+                
+                const slotDiv = document.getElementById('dailySlots');
+                slotDiv.innerHTML = "";
+                (trip.sections || []).forEach(sec => {
+                    const dId = addNewDateHeader(sec.dateTitle);
+                    sec.stops.forEach(st => addStopField(dId, st.en, st.zh));
                 });
             });
-        }
-
-        function deleteTrip(id, e) {
-            e.stopPropagation();
-            if (confirm("Delete this trip forever?")) {
-                db.ref('trips/' + id).remove();
-                if (currentTripId === id) window.location.href = window.location.pathname;
-                else updateHistoryList();
-            }
-        }
-
-        function generateSchedule(isLoading = false, savedDays = {}) {
-            const startVal = document.getElementById('startDate').value;
-            const endVal = document.getElementById('endDate').value;
-            const slotsDiv = document.getElementById('dailySlots');
-            if (!startVal || !endVal) return;
-            const start = new Date(startVal); const end = new Date(endVal);
-            slotsDiv.innerHTML = "";
-            let curr = new Date(start);
-            while (curr <= end) {
-                const dateId = curr.toDateString().replace(/\s/g, '');
-                const box = document.createElement('div');
-                box.innerHTML = `<div class="flex items-center justify-between mb-4 border-b pb-2"><h3 class="text-lg font-black">${curr.toDateString()}</h3><button onclick="addStopField('${dateId}')" class="text-[10px] font-bold text-blue-600 bg-blue-50 px-3 py-1 rounded-full uppercase italic">+ Stop</button></div><div id="stops-${dateId}" class="space-y-3"></div>`;
-                slotsDiv.appendChild(box);
-                if (isLoading && savedDays[dateId]) { savedDays[dateId].forEach(txt => addStopField(dateId, txt)); }
-                else if (!isLoading && !savedDays[dateId]) { addStopField(dateId); }
-                curr.setDate(curr.getDate() + 1);
-            }
-        }
-
-        function addStopField(dateId, val = "") {
-            const container = document.getElementById(`stops-${dateId}`);
-            if (!container) return;
-            const row = document.createElement('div');
-            row.className = "flex items-center gap-3 bg-white p-4 rounded-2xl shadow-sm border border-slate-100 hover:border-blue-100";
-            row.innerHTML = `<input type="checkbox" onchange="updateCount()" class="w-5 h-5 rounded-lg accent-blue-600">
-                             <input type="text" value="${val}" onblur="translateText(this)" oninput="saveCurrentTrip()" placeholder="Where to?" 
-                                    class="flex-1 outline-none font-bold text-slate-700 text-sm bg-transparent">
-                             <button onclick="this.parentElement.remove(); saveCurrentTrip(); updateCount();" class="text-slate-200 hover:text-red-400">✕</button>`;
-            container.appendChild(row);
-        }
-
-        function addDocLink(name = "", url = "") {
-            const container = document.getElementById('docLinksContainer');
-            const div = document.createElement('div');
-            div.className = "flex items-center gap-2 bg-slate-50 p-3 rounded-xl";
-            div.innerHTML = `<input type="text" placeholder="Name" value="${name}" oninput="saveCurrentTrip()" class="w-1/3 bg-transparent font-bold text-xs text-blue-600 outline-none"><input type="text" placeholder="URL" value="${url}" oninput="saveCurrentTrip()" class="flex-1 bg-transparent text-[10px] text-slate-400 outline-none truncate"><button onclick="window.open(this.previousElementSibling.value, '_blank')" class="text-[10px] font-bold text-blue-500 bg-white px-2 py-1 rounded shadow-sm">Open</button><button onclick="this.parentElement.remove(); saveCurrentTrip();" class="text-slate-300 px-1 text-xs">✕</button>`;
-            container.appendChild(div);
+            updateHistoryMenu();
         }
 
         function processImport() {
             const rawText = document.getElementById('importArea').value;
             const lines = rawText.split('\n').map(l => l.trim()).filter(l => l !== "");
-            const dayContainers = Array.from(document.querySelectorAll('[id^="stops-"]'));
-            if (dayContainers.length === 0) return alert("Set dates first!");
-            let dayIndex = -1;
+            let currentId = null;
             lines.forEach(line => {
-                if (/Day \d+|Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec/i.test(line)) { dayIndex++; }
-                else if (dayIndex >= 0 && dayIndex < dayContainers.length) {
+                if (/Day \d+|Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec/i.test(line)) {
+                    currentId = addNewDateHeader(line);
+                } else if (currentId) {
                     const clean = line.replace(/\[\s*\]/g, '').split('–')[0].trim();
-                    if (clean) addStopField(dayContainers[dayIndex].id.replace('stops-', ''), clean);
+                    if (clean) addStopField(currentId, clean, "");
                 }
             });
-            closeImportModal(); saveCurrentTrip();
+            document.getElementById('importModal').classList.add('hidden');
+            saveCurrentTrip();
+        }
+
+        function addDocLink(n="", u="") {
+            const div = document.createElement('div');
+            div.className = "flex items-center gap-2 bg-slate-50 p-2 rounded-xl mb-2";
+            div.innerHTML = `<input value="${n}" class="w-1/3 bg-transparent font-bold text-xs" placeholder="Name"><input value="${u}" class="flex-1 bg-transparent text-[10px] text-slate-400" placeholder="Link"><button onclick="window.open(this.previousElementSibling.value, '_blank')" class="bg-white px-2 py-1 rounded text-[10px] font-bold shadow-sm">Open</button><button onclick="this.parentElement.remove(); saveCurrentTrip();" class="text-slate-200 px-1">✕</button>`;
+            document.getElementById('docLinksContainer').appendChild(div);
+        }
+
+        function updateHistoryMenu() {
+            db.ref('trips').limitToLast(10).once('value', (snap) => {
+                const list = document.getElementById('historyList');
+                list.innerHTML = '<p class="text-[10px] uppercase font-black text-slate-500 mb-4 px-2">History</p>';
+                const data = snap.val();
+                if (!data) return;
+                Object.keys(data).sort().reverse().forEach(id => {
+                    const item = document.createElement('div');
+                    item.className = `flex justify-between p-3 rounded-xl cursor-pointer ${id === currentTripId ? 'bg-blue-600 text-white shadow-lg shadow-blue-900/20' : 'text-slate-400 hover:bg-slate-800'}`;
+                    item.onclick = () => loadTrip(id);
+                    item.innerHTML = `<span class="truncate font-bold text-sm">${data[id].subject || 'Untitled'}</span>`;
+                    list.appendChild(item);
+                });
+            });
         }
 
         function updateCount() { document.getElementById('selectCount').innerText = document.querySelectorAll('input[type="checkbox"]:checked').length; }
-
+        
         function goToSelectedRoute() {
-            const checked = Array.from(document.querySelectorAll('input[type="checkbox"]:checked')).map(cb => encodeURIComponent(cb.nextElementSibling.value)).filter(v => v !== "");
-            if (checked.length === 0) return alert("Select a place first!");
+            const checked = Array.from(document.querySelectorAll('input[type="checkbox"]:checked')).map(cb => {
+                const en = cb.nextElementSibling.querySelectorAll('input')[0].value;
+                const zh = cb.nextElementSibling.querySelectorAll('input')[1].value;
+                return encodeURIComponent(zh || en); // Prioritize Chinese for Google Maps in JP
+            }).filter(v => v !== "");
+
+            if (checked.length === 0) return alert("Select a place!");
             const url = checked.length === 1 ? `https://www.google.com/maps/search/?api=1&query=${checked[0]}` : `https://www.google.com/maps/dir/?api=1&destination=${checked.pop()}&waypoints=${checked.join('|')}&travelmode=transit`;
             window.open(url, '_blank');
         }
 
         window.onload = () => {
-            const urlParams = new URLSearchParams(window.location.search);
-            const tripId = urlParams.get('id');
-            if (tripId) loadTrip(tripId);
-            else db.ref('trips').limitToLast(1).once('value', (snap) => {
-                const data = snap.val();
-                if (data) loadTrip(Object.keys(data)[0]);
-                else createNewTrip();
+            const tripId = new URLSearchParams(window.location.search).get('id');
+            if (tripId) loadTrip(tripId); else db.ref('trips').limitToLast(1).once('value', (snap) => {
+                const data = snap.val(); if (data) loadTrip(Object.keys(data)[0]); else createNewTrip();
             });
         };
     </script>
