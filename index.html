@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Osaka Trip Manager</title>
+    <title>Osaka Trip Planner</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://www.gstatic.com/firebasejs/9.1.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.1.1/firebase-database-compat.js"></script>
@@ -16,8 +16,6 @@
         main { width: 100%; min-height: 100vh; }
         ::-webkit-scrollbar { width: 4px; }
         ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
-        .date-header-input { transition: all 0.2s; }
-        .date-header-input:focus { border-bottom: 2px solid #2563eb; color: #2563eb; }
     </style>
 </head>
 <body class="bg-slate-50 font-sans text-slate-800 flex h-screen overflow-hidden">
@@ -29,7 +27,7 @@
             <button onclick="document.getElementById('importModal').classList.remove('hidden')" class="w-full py-3 bg-emerald-600 text-white rounded-xl font-bold flex items-center justify-center gap-2">⚡ Smart Import</button>
         </div>
         <div class="flex-1 overflow-y-auto p-4 space-y-2" id="historyList">
-            <p class="text-[10px] uppercase font-black text-slate-500 mb-4 px-2 tracking-widest italic">History</p>
+            <p class="text-[10px] uppercase font-black text-slate-500 mb-4 px-2 tracking-widest italic font-bold">History</p>
         </div>
     </aside>
 
@@ -38,17 +36,17 @@
             
             <div class="text-center mt-12 md:mt-0 mb-8">
                 <input type="text" id="tripSubject" oninput="saveCurrentTrip()" class="text-3xl md:text-5xl font-black text-slate-900 bg-transparent outline-none w-full text-center italic" value="Osaka Adventure 2026">
-                <button onclick="copyShareLink()" class="text-[10px] mt-4 text-blue-500 font-bold border border-blue-200 px-3 py-1 rounded-full bg-white shadow-sm hover:bg-blue-50 transition-all tracking-widest italic">🔗 SHARE TRIP LINK</button>
+                <button onclick="copyShareLink()" class="text-[10px] mt-4 text-blue-500 font-bold border border-blue-200 px-3 py-1 rounded-full bg-white shadow-sm hover:bg-blue-50 tracking-widest italic">🔗 SHARE TRIP LINK</button>
             </div>
 
             <div class="bg-white p-6 md:p-8 rounded-[2.5rem] shadow-xl border border-slate-100 mb-10">
                 <div class="flex flex-col md:flex-row gap-4 mb-6 pb-6 border-b border-slate-50">
                     <div class="flex-1">
-                        <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1 italic">Range Arrive</label>
+                        <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1 italic font-bold">Arrive</label>
                         <input type="date" id="startDate" onchange="generateSchedule();" class="w-full p-3 bg-slate-50 rounded-xl outline-none mt-2 font-bold">
                     </div>
                     <div class="flex-1">
-                        <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1 italic">Range Depart</label>
+                        <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1 italic font-bold">Depart</label>
                         <input type="date" id="endDate" onchange="generateSchedule();" class="w-full p-3 bg-slate-50 rounded-xl outline-none mt-2 font-bold">
                     </div>
                 </div>
@@ -69,8 +67,9 @@
     <div id="importModal" class="fixed inset-0 bg-black/60 z-[300] hidden flex items-center justify-center p-4 backdrop-blur-sm">
         <div class="bg-white rounded-[2.5rem] p-8 w-full max-w-lg shadow-2xl">
             <h2 class="text-2xl font-black mb-2 italic text-blue-600">Smart Import</h2>
-            <p class="text-[10px] text-slate-400 font-bold uppercase mb-4 tracking-widest italic">Paste text from Google Docs</p>
-            <textarea id="importArea" placeholder="Day 1: Mon Feb 23..." class="w-full h-48 p-4 bg-slate-50 border-2 border-slate-100 rounded-3xl mb-4 text-sm outline-none focus:border-blue-500"></textarea>
+            <p class="text-[10px] text-slate-400 font-bold uppercase mb-4 tracking-widest italic">Paste your itinerary text</p>
+            <textarea id="importArea" placeholder="Day 1: Mon Feb 23...
+[ ] KIX Airport" class="w-full h-48 p-4 bg-slate-50 border-2 border-slate-100 rounded-3xl mb-4 text-sm outline-none focus:border-blue-500"></textarea>
             <div class="flex gap-3">
                 <button onclick="processImport()" class="flex-1 py-4 bg-blue-600 text-white font-bold rounded-2xl shadow-lg">Process ⚡</button>
                 <button onclick="document.getElementById('importModal').classList.add('hidden')" class="px-6 py-4 bg-slate-100 rounded-2xl font-bold">Cancel</button>
@@ -97,7 +96,7 @@
         function copyShareLink() {
             const url = `${window.location.origin}${window.location.pathname}?id=${currentTripId}`;
             navigator.clipboard.writeText(url);
-            alert("Share link copied to clipboard!");
+            alert("Share link copied!");
         }
 
         async function translateText(enInput) {
@@ -120,25 +119,23 @@
             loadTrip(currentTripId);
         }
 
-        // --- NEW AUTO GENERATOR WITH EDITABLE HEADERS ---
+        // --- THE FIXED DATE GENERATOR (NO AMEND) ---
         function generateSchedule() {
-            const startStr = document.getElementById('startDate').value;
-            const endStr = document.getElementById('endDate').value;
-            if (!startStr || !endStr) return;
+            const startVal = document.getElementById('startDate').value;
+            const endVal = document.getElementById('endDate').value;
+            if (!startVal || !endVal) return;
 
-            const start = new Date(startStr);
-            const end = new Date(endStr);
-            if (isNaN(start) || isNaN(end)) return;
-
+            const start = new Date(startVal);
+            const end = new Date(endVal);
             const slotDiv = document.getElementById('dailySlots');
             slotDiv.innerHTML = "";
             
-            let current = new Date(start);
-            while (current <= end) {
-                const formattedDate = current.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' });
-                const dateId = 'date_' + current.getTime();
-                renderDayBlock(dateId, formattedDate, []);
-                current.setDate(current.getDate() + 1);
+            let curr = new Date(start);
+            while (curr <= end) {
+                const dateTitle = curr.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' });
+                const dateId = 'date_' + curr.getTime();
+                renderDayBlock(dateId, dateTitle, []);
+                curr.setDate(curr.getDate() + 1);
             }
             saveCurrentTrip();
         }
@@ -146,15 +143,12 @@
         function renderDayBlock(dateId, dateTitle, stops) {
             const container = document.getElementById('dailySlots');
             const box = document.createElement('div');
-            box.id = 'container-' + dateId;
-            box.className = "mb-12";
+            box.id = `container-${dateId}`;
+            box.className = "mb-10";
             box.innerHTML = `
-                <div class="flex items-center justify-between mb-4 border-b-2 border-slate-100 pb-2">
-                    <input type="text" value="${dateTitle}" oninput="saveCurrentTrip()" 
-                           class="date-header-input text-xl font-black text-slate-800 bg-transparent outline-none flex-1 italic">
-                    <div class="flex gap-2">
-                        <button onclick="addStopField('${dateId}')" class="text-[10px] font-bold text-blue-600 bg-blue-50 px-3 py-1 rounded-full uppercase italic hover:bg-blue-100">+ Stop</button>
-                    </div>
+                <div class="flex items-center justify-between mb-4 border-b pb-2">
+                    <h3 class="text-xl font-black text-slate-800 italic">${dateTitle}</h3>
+                    <button onclick="addStopField('${dateId}')" class="text-[10px] font-bold text-blue-600 bg-blue-50 px-3 py-1 rounded-full uppercase">+ Stop</button>
                 </div>
                 <div id="stops-${dateId}" class="space-y-4"></div>
             `;
@@ -166,14 +160,14 @@
             const container = document.getElementById(`stops-${dateId}`);
             if (!container) return;
             const row = document.createElement('div');
-            row.className = "flex items-start gap-4 bg-white p-5 rounded-3xl shadow-sm border border-slate-100 group transition-all hover:shadow-md";
+            row.className = "flex items-start gap-4 bg-white p-5 rounded-3xl shadow-sm border border-slate-100 group transition-all";
             row.innerHTML = `
                 <input type="checkbox" onchange="updateCount()" class="mt-2 w-6 h-6 rounded-lg accent-blue-600 border-2">
                 <div class="flex-1 flex flex-col gap-1">
-                    <input type="text" value="${enVal}" onblur="translateText(this)" oninput="saveCurrentTrip()" placeholder="English Destination" class="font-black text-slate-800 text-lg bg-transparent outline-none w-full">
-                    <input type="text" value="${zhVal}" oninput="saveCurrentTrip()" placeholder="目的地 (中文)" class="font-bold text-slate-400 text-sm bg-transparent outline-none w-full italic">
+                    <input type="text" value="${enVal}" onblur="translateText(this)" oninput="saveCurrentTrip()" placeholder="Destination" class="font-black text-slate-800 text-lg bg-transparent outline-none w-full">
+                    <input type="text" value="${zhVal}" oninput="saveCurrentTrip()" placeholder="目的地" class="font-bold text-slate-400 text-sm bg-transparent outline-none w-full italic">
                 </div>
-                <button onclick="this.parentElement.remove(); saveCurrentTrip(); updateCount();" class="mt-2 text-slate-200 hover:text-red-400 opacity-0 group-hover:opacity-100 transition-all font-bold text-xl">✕</button>
+                <button onclick="this.parentElement.remove(); saveCurrentTrip(); updateCount();" class="mt-2 text-slate-200">✕</button>
             `;
             container.appendChild(row);
         }
@@ -190,7 +184,7 @@
                 })),
                 sections: Array.from(document.querySelectorAll('#dailySlots > div')).map(div => ({
                     dateId: div.id.replace('container-', ''),
-                    dateTitle: div.querySelector('input').value, // Saves the amended title
+                    dateTitle: div.querySelector('h3').innerText,
                     stops: Array.from(div.querySelectorAll('[id^="stops-"] > div')).map(s => ({
                         en: s.querySelectorAll('input[type="text"]')[0].value,
                         zh: s.querySelectorAll('input[type="text"]')[1].value
@@ -211,25 +205,26 @@
                 document.getElementById('endDate').value = trip.end || "";
                 document.getElementById('docLinksContainer').innerHTML = "";
                 (trip.docLinks || []).forEach(link => addDocLink(link.name, link.url));
-                
                 const slotDiv = document.getElementById('dailySlots');
                 slotDiv.innerHTML = "";
                 (trip.sections || []).forEach(sec => renderDayBlock(sec.dateId, sec.dateTitle, sec.stops));
             });
-            updateHistoryList();
+            updateHistoryMenu();
         }
 
+        // --- SMART IMPORT LOGIC ---
         function processImport() {
             const rawText = document.getElementById('importArea').value;
             const lines = rawText.split('\n').map(l => l.trim()).filter(l => l !== "");
             const dayBlocks = Array.from(document.querySelectorAll('[id^="stops-"]'));
-            let dayIndex = -1;
+            let dayIdx = -1;
             lines.forEach(line => {
+                // Trigger next day when "Day X" or a "Month" is found
                 if (/Day \d+|Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec/i.test(line)) {
-                    dayIndex++;
-                } else if (dayIndex >= 0 && dayIndex < dayBlocks.length) {
+                    dayIdx++;
+                } else if (dayIdx >= 0 && dayIdx < dayBlocks.length) {
                     const clean = line.replace(/\[\s*\]/g, '').split('–')[0].trim();
-                    if (clean) addStopField(dayBlocks[dayIndex].id.replace('stops-', ''), clean);
+                    if (clean) addStopField(dayBlocks[dayIdx].id.replace('stops-', ''), clean, "");
                 }
             });
             document.getElementById('importModal').classList.add('hidden');
@@ -238,8 +233,8 @@
 
         function addDocLink(n="", u="") {
             const div = document.createElement('div');
-            div.className = "flex items-center gap-2 bg-slate-50 p-2 rounded-xl mb-2";
-            div.innerHTML = `<input value="${n}" class="w-1/3 bg-transparent font-bold text-xs" placeholder="Name"><input value="${u}" class="flex-1 bg-transparent text-[10px] text-slate-400" placeholder="Link"><button onclick="window.open(this.previousElementSibling.value, '_blank')" class="bg-white px-2 py-1 rounded text-[10px] font-bold shadow-sm">Open</button><button onclick="this.parentElement.remove(); saveCurrentTrip();" class="text-slate-200 px-1">✕</button>`;
+            div.className = "flex gap-2 mb-2 bg-slate-50 p-2 rounded-xl";
+            div.innerHTML = `<input value="${n}" class="w-1/3 bg-transparent font-bold text-xs" placeholder="Name"><input value="${u}" class="flex-1 bg-transparent text-[10px] text-slate-400" placeholder="URL"><button onclick="window.open(this.previousElementSibling.value, '_blank')" class="bg-white px-2 py-1 rounded text-[10px] shadow-sm font-bold">Open</button><button onclick="this.parentElement.remove(); saveCurrentTrip();" class="text-slate-200 px-1">✕</button>`;
             document.getElementById('docLinksContainer').appendChild(div);
         }
 
@@ -247,11 +242,10 @@
             db.ref('trips').limitToLast(10).once('value', (snap) => {
                 const list = document.getElementById('historyList');
                 list.innerHTML = '<p class="text-[10px] uppercase font-black text-slate-500 mb-4 px-2">History</p>';
-                const data = snap.val();
-                if (!data) return;
+                const data = snap.val(); if (!data) return;
                 Object.keys(data).sort().reverse().forEach(id => {
                     const item = document.createElement('div');
-                    item.className = `p-3 rounded-xl cursor-pointer ${id === currentTripId ? 'bg-blue-600 text-white shadow-lg' : 'text-slate-400'}`;
+                    item.className = `p-3 rounded-xl cursor-pointer ${id === currentTripId ? 'bg-blue-600 text-white' : 'text-slate-400'}`;
                     item.onclick = () => loadTrip(id);
                     item.innerHTML = `<span class="truncate font-bold text-sm">${data[id].subject || 'Untitled'}</span>`;
                     list.appendChild(item);
@@ -267,7 +261,7 @@
                 const zh = cb.nextElementSibling.querySelectorAll('input')[1].value;
                 return encodeURIComponent(zh || en);
             }).filter(v => v !== "");
-            if (checked.length === 0) return alert("Select a place first!");
+            if (checked.length === 0) return alert("Select a place!");
             const url = checked.length === 1 ? `https://www.google.com/maps/search/?api=1&query=${checked[0]}` : `https://www.google.com/maps/dir/?api=1&destination=${checked.pop()}&waypoints=${checked.join('|')}&travelmode=transit`;
             window.open(url, '_blank');
         }
