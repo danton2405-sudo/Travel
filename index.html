@@ -132,10 +132,13 @@
             });
         }
 
+        // Improved Auto-Translate Engine
         async function translateText(enInput) {
             const text = enInput.value;
             const zhInput = enInput.nextElementSibling;
-            if (!text || zhInput.value) return; 
+            if (!text || (zhInput && zhInput.value)) return; 
+            
+            enInput.classList.add('animate-pulse');
             try {
                 const res = await fetch(`https://api.mymemory.translated.net/get?q=${encodeURIComponent(text)}&langpair=en|zh-HK`);
                 const data = await res.json();
@@ -144,6 +147,7 @@
                     saveCurrentTrip();
                 }
             } catch (err) { console.error("Translation error", err); }
+            enInput.classList.remove('animate-pulse');
         }
 
         function createNewTrip() {
@@ -261,7 +265,8 @@
             const container = document.getElementById(`stops-${dateId}`);
             if (!container) return;
             const row = document.createElement('div');
-            row.id = `stop-row-${Date.now()}-${Math.random().toString(36).substr(2, 5)}`;
+            const uniqueId = `stop-row-${Date.now()}-${Math.random().toString(36).substr(2, 5)}`;
+            row.id = uniqueId;
             row.className = "flex items-start gap-4 bg-white p-5 rounded-3xl shadow-sm border border-slate-100 group transition-all hover:shadow-md";
             row.innerHTML = `
                 <input type="checkbox" onchange="updateCount()" class="mt-2 w-6 h-6 rounded-lg accent-blue-600 border-2">
@@ -272,6 +277,12 @@
                 <button onclick="this.parentElement.remove(); saveCurrentTrip(); updateCount();" class="mt-2 text-slate-200 hover:text-red-400 opacity-0 group-hover:opacity-100 transition-all font-bold text-xl">✕</button>
             `;
             container.appendChild(row);
+
+            // Auto-trigger translation if we have English but no Chinese
+            if (enVal && !zhVal) {
+                const enInput = row.querySelectorAll('input[type="text"]')[0];
+                translateText(enInput);
+            }
         }
 
         function addDocLink(name = "", url = "") {
@@ -297,7 +308,9 @@
                     currentDayIndex++;
                 } else if (currentDayIndex >= 0 && currentDayIndex < dayContainers.length) {
                     const clean = line.replace(/\[\s*\]/g, '').split('–')[0].trim();
-                    if (clean) addStopField(dayContainers[currentDayIndex].id.replace('stops-', ''), clean, "");
+                    if (clean) {
+                        addStopField(dayContainers[currentDayIndex].id.replace('stops-', ''), clean, "");
+                    }
                 }
             });
             closeImportModal();
